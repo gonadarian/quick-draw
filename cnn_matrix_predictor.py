@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Dense
+from keras.layers import Input
 from keras.models import Model, load_model
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
@@ -11,12 +11,12 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
 
 def gen_decoder_model(autoencoder, show=False):
-    # remove layers from encoder part of autoencoder
+    # remove layers from encoder part of auto-encoder
     for i in range(9):
         autoencoder.layers.pop(0)
 
     # add new input layer to represent encoded state with 14 numbers
-    input = Input(shape=(1,1,14))
+    input = Input(shape=(1, 1, 14))
 
     # relink all the layers again to include new input one in the chain
     x = input
@@ -196,5 +196,6 @@ for i in range(n_clusters):
 fig.add_subplot(1, n_clusters + 1, n_clusters + 1)
 plt.imshow(sample)
 plt.show()
+
 
 print('end')

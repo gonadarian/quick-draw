@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw
 import numpy as np
 
+
 img_size = 28
 
 
@@ -27,5 +28,6 @@ for x in range(img_size // 2):
         im_set[x * img_size + y, :, :] = im_array
 
 np.save('data\line_originals_v2_392x28x28.npy', im_set)
+
 
 print('end')

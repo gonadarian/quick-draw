@@ -1,6 +1,7 @@
 import numpy as np
 import random as rand
 
+
 rand.seed(1)
 
 samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
@@ -45,5 +46,6 @@ for index in range(m):
 
 np.save('data\line_mixed_samples_v2_{}x28x28x1.npy'.format(m), samples_mix)
 np.save('data\line_mixed_encodings_v2_{}x28x28x17.npy'.format(m), encodings_mix)
+
 
 print('end')
