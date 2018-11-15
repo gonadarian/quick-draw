@@ -7,9 +7,9 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
-preload = True
-train = False
-predict = True
+preload = False
+train = True
+predict = False
 analysis = False
 
 
@@ -162,16 +162,16 @@ def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
 
 
 def load_data():
-    # x = np.load('generator\line_samples_v2_7234x28x28x1.npy')
-    x = np.load('generator\line_mixed_samples_v2_7234x28x28x1.npy')
+    # x = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')
+    x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')
     assert x.shape[1:] == (28, 28, 1)
     m = x.shape[0]
     x = np.reshape(x, (m, 28, 28, 1))
-    # y = np.load('generator\line_encodings_v2_7234x28x28x16.npy')
-    y = np.load('generator\line_mixed_encodings_v2_7234x28x28x17.npy')
+    # y = np.load('generator\data\line_encodings_v2_7234x28x28x16.npy')
+    y = np.load('generator\data\line_mixed_encodings_v2_7234x28x28x17.npy')
     assert y.shape[1:] == (28, 28, 17)
     assert y.shape[0] == m
-    return (x, y, m)
+    return x, y, m
 
 
 x, y, m = load_data()

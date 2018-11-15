@@ -104,7 +104,7 @@ Y = np.concatenate(y_list)
 print('encoding shape:', Y.shape)
 assert Y.shape[1:] == (28, 28, 17)
 
-np.save('line_samples_v2_{}x28x28x1.npy'.format(X.shape[0]), X)
-np.save('line_encodings_v2_{}x28x28x16.npy'.format(Y.shape[0]), Y)
+np.save('data\line_samples_v2_{}x28x28x1.npy'.format(X.shape[0]), X)
+np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(Y.shape[0]), Y)
 
 print('done all')

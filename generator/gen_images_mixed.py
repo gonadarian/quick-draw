@@ -3,8 +3,8 @@ import random as rand
 
 rand.seed(1)
 
-samples = np.load('line_samples_v2_7234x28x28x1.npy')
-encodings = np.load('line_encodings_v2_7234x28x28x16.npy')
+samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
+encodings = np.load('data\line_encodings_v2_7234x28x28x16.npy')
 assert samples.shape == (7234, 28, 28, 1)
 assert encodings.shape == (7234, 28, 28, 17)
 assert samples.shape[0] == encodings.shape[0]
@@ -43,7 +43,7 @@ for index in range(m):
     samples_mix[index, ...] = sample
     encodings_mix[index, ...] = encoding
 
-np.save('line_mixed_samples_v2_{}x28x28x1.npy'.format(m), samples_mix)
-np.save('line_mixed_encodings_v2_{}x28x28x17.npy'.format(m), encodings_mix)
+np.save('data\line_mixed_samples_v2_{}x28x28x1.npy'.format(m), samples_mix)
+np.save('data\line_mixed_encodings_v2_{}x28x28x17.npy'.format(m), encodings_mix)
 
 print('end')
