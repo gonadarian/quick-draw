@@ -1,39 +1,19 @@
 import numpy as np
 import models as mdls
+import random as rand
 import utilities as utl
-from keras.layers import Input, Conv2D
-from keras.models import Model
-from keras.optimizers import Adam
+import matplotlib.pyplot as plt
 from scipy import spatial
-
+from keras.models import load_model
+from keras.optimizers import Adam
+from keras.callbacks import TensorBoard, ModelCheckpoint
 
 preload = False
 train = True
 predict = False
 analysis = False
 
-
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
-
-
-# TODO: move to models
-def get_model():
-    input_img = Input(shape=(28, 28, 1))
-
-    x = Conv2D(4, (3, 3), activation='relu', padding='same')(input_img)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(12, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(16, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(20, (7, 7), activation='relu', padding='same')(x)
-    x = Conv2D(24, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(28, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(22, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(17, (3, 3), activation='tanh', padding='same')(x)
-
-    encoded = x
-
-    model = Model(input_img, encoded)
-    return model
 
 
 def get_distances(encodings):
@@ -57,7 +37,7 @@ def get_embeddings(x, idx, show=False):
     assert x_sample.shape == (1, 28, 28, 1)
 
     # get prediction
-    y_pred = encoder.predict(x_sample)
+    y_pred = encoder_model.predict(x_sample)
     assert y_pred.shape == (1, 28, 28, 17)
     y_pred = y_pred[0]
 
@@ -80,12 +60,10 @@ def get_embeddings(x, idx, show=False):
 
 
 def load_data():
-    # x = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')
     x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')
     assert x.shape[1:] == (28, 28, 1)
     m = x.shape[0]
     x = np.reshape(x, (m, 28, 28, 1))
-    # y = np.load('generator\data\line_encodings_v2_7234x28x28x16.npy')
     y = np.load('generator\data\line_mixed_encodings_v2_7234x28x28x17.npy')
     assert y.shape[1:] == (28, 28, 17)
     assert y.shape[0] == m
@@ -96,19 +74,16 @@ x, y, m = load_data()
 
 
 if preload:
-    from keras.models import load_model
-    # encoder = load_model('models\lines_encoded\lines_encoded_v2-047-0.000024.hdf5')
-    encoder = load_model('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
+    encoder_model = mdls.load_encoder_model()
 
 else:
-    encoder = get_model()
+    encoder_model = mdls.create_encoder_model()
     optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.00, amsgrad=False)
-    encoder.compile(optimizer='adam', loss='mean_squared_error')
+    encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
 
 if train:
-    from keras.callbacks import TensorBoard, ModelCheckpoint
-    encoder.fit(
+    encoder_model.fit(
         x, y,
         epochs=60,
         batch_size=32,
@@ -124,18 +99,16 @@ if train:
 
 
 if predict:
+
     predict_single = False
     predict_multiple = True
-
-    import matplotlib.pyplot as plt
-    import random
 
     autoencoder = load_model('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
     decoder = mdls.gen_decoder_model(autoencoder)
 
     if predict_single:
 
-        idx = random.randint(0, x.shape[0])
+        idx = rand.randint(0, x.shape[0])
         print('random index:', idx)
         embeddings, _ = get_embeddings(x, idx, True)
 
@@ -156,7 +129,7 @@ if predict:
         fig_cols = n
 
         plt.figure(figsize=(fig_rows * fig_cols, 4))
-        indexes = random.sample(range(1, x.shape[0]), n)
+        indexes = rand.sample(range(1, x.shape[0]), n)
 
         for i in range(n):
             index = indexes[i]

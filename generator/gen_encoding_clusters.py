@@ -1,16 +1,20 @@
 import numpy as np
 import random as rand
-from keras.models import load_model
+import models as mdls
 import matplotlib.pyplot as plt
 
 
+rand.seed(1)
+
+
+# TODO replace with utilities implementation
 def get_encodings(sample, show=False):
     # prepare sample
     assert sample.shape == (28, 28)
     sample = sample.reshape((1, 28, 28, 1))
 
     # get prediction
-    y_pred = encoder.predict(sample)
+    y_pred = encoder_model.predict(sample)
     assert y_pred.shape == (1, 28, 28, 17)
     y_pred = y_pred[0]
 
@@ -32,13 +36,11 @@ def get_encodings(sample, show=False):
     return embeddings
 
 
-rand.seed(1)
-
 samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
 assert samples.shape == (7234, 28, 28, 1)
 m = samples.shape[0]
 
-encoder = load_model('..\models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
+encoder_model = mdls.load_encoder_model()
 
 pairs_per_sample = 5  # total is twice the size, half for positive pairs, half for negative ones
 

@@ -1,48 +1,40 @@
 import numpy as np
 import models as mdls
-from keras.layers import Input
-from keras.models import Model
-from keras.optimizers import Adam
+import random as rand
+import matplotlib.pyplot as plt
+from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 preload = True
 train = False
 predict = True
-analyze_1 = False
-analyze_2 = False
+analyze_1 = True
+analyze_2 = True
 
 
 if preload:
-    from keras.models import load_model
-    autoencoder = load_model('models\lines\model_autoencoder_v2.385-0.0047.hdf5')
+    autoencoder_model = mdls.load_autoencoder_model()
 
 else:
-    autoencoder = mdls.get_model_autoencoder()
-    optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.00, amsgrad=False)
-    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+    autoencoder_model = mdls.get_model_autoencoder()
+    autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
 
-print(autoencoder.summary())
+print(autoencoder_model.summary())
 
-
-x_train = np.load('generator\lines_392x28x28_v2.npy')
-x_test = np.load('generator\lines_392x28x28_v2.npy')
-x_train = x_train.astype('float32') / 255.
-x_test = x_test.astype('float32') / 255.
-x_train = np.reshape(x_train, (len(x_train), 28, 28, 1))  # adapt this if using `channels_first` image data format
-x_test = np.reshape(x_test, (len(x_test), 28, 28, 1))  # adapt this if using `channels_first` image data format
-sample_count = x_test.shape[0]
+X = np.load('generator\data\line_originals_v2_392x28x28.npy')
+X = X.astype('float32') / 255.
+X = np.reshape(X, (len(X), 28, 28, 1))
+sample_count = X.shape[0]
 
 
 if train:
-    from keras.callbacks import TensorBoard, ModelCheckpoint
-
-    autoencoder.fit(
-        x_train, x_train,
+    autoencoder_model.fit(
+        X, X,
         epochs=400,
         batch_size=64,
         shuffle=True,
-        validation_data=(x_test, x_test),
+        validation_data=(X, X),
         callbacks=[
             TensorBoard(log_dir='C:\Logs'),
             ModelCheckpoint(
@@ -53,12 +45,10 @@ if train:
 
 
 if predict:
-    import matplotlib.pyplot as plt
-    import random
 
     n = 10
-    decoded_images = autoencoder.predict(x_test)
-    indexes = random.sample(range(1, decoded_images.shape[0]), n)
+    decoded_images = autoencoder_model.predict(x_test)
+    indexes = rand.sample(range(1, decoded_images.shape[0]), n)
 
     plt.figure(figsize=(30, 4))
     for i in range(n):
@@ -92,40 +82,26 @@ if predict:
 
 # show activations of encoded layer with 14 numbers
 if analyze_1:
-    autoencoder.outputs = [autoencoder.layers[8].output]
+
+    autoencoder_model.outputs = [autoencoder_model.layers[8].output]
+
     for idx in range(sample_count):
         sample = [x_test[[idx], ...]]
-        activation = autoencoder.predict(sample)
+        activation = autoencoder_model.predict(sample)
         print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), activation[0,0,0,:]))))
 
 
 # generate images for encoded values of choice
 if analyze_2:
-    import matplotlib.pyplot as plt
 
-    # remove layers from encoder part of autoencoder
-    for i in range(9):
-        autoencoder.layers.pop(0)
-
-    # add new input layer to represent encoded state with 14 numbers
-    input = Input(shape=(1, 1, 14))
-
-    # relink all the layers again to include new input one in the chain
-    x = input
-    layers = [l for l in autoencoder.layers]
-    for i in range(len(layers)):
-        x = layers[i](x)
-
-    # create new model with this new layer chain
-    new_model = Model(input=input, output=x)
-    new_model.summary()
+    decoder_model = mdls.gen_decoder_model(autoencoder_model, show=True)
 
     # this is a 14-number encoding for one of the lines in the test set
     sample = np.array([[[[-0.266, 0.209, 0.830, -0.031, 0.069, 0.922, -0.987, 0.800, -0.882, 0.431, 0.853, 0.117, 0.793, 0.388]]]])
 
     # show 10 images for different encoding variations
     for idx in range(10):
-        img = new_model.predict(sample)
+        img = decoder_model.predict(sample)
         img = img.reshape(28, 28)
 
         plt.gray()
@@ -134,3 +110,6 @@ if analyze_2:
 
         # test what happens when 3rd number is increased
         sample[0, 0, 0, 0] += 0.1
+
+
+print('end')

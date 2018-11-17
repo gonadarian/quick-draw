@@ -1,31 +1,16 @@
 import numpy as np
+import models as mdls
 import random as rand
 import utilities as utl
-from keras.models import Model, load_model
-from keras.layers import Input, Dense
-from keras.optimizers import Adam
 
-preload = False
+
+preload = True
 train = False
-predict = False
+predict = True
 cluster = True
 
 rand.seed(1)
 np.random.seed(1)
-
-
-# TODO: move to models
-def get_model():
-    input_data = Input(shape=(34,))
-    x = input_data
-    x = Dense(32, activation='relu')(x)
-    x = Dense(16, activation='relu')(x)
-    x = Dense(8, activation='relu')(x)
-    x = Dense(4, activation='relu')(x)
-    x = Dense(1, activation='sigmoid')(x)
-    output_data = x
-    model = Model(inputs=input_data, outputs=output_data)
-    return model
 
 
 def get_data():
@@ -41,20 +26,17 @@ def get_data():
 
 
 if preload:
-    from keras.models import load_model
-    model = load_model('models\pairs_encoded\model_dense_v1-088-0.001555.hdf5')
+    clustering_model = mdls.load_clustering_model()
 
 elif train or predict:
-    model = get_model()
-    optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.00, amsgrad=False)
-    model.compile(optimizer='adam', loss='binary_crossentropy')
-    model.summary()
+    clustering_model = mdls.create_clustering_model()
+    clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
 
 
 if train:
     from keras.callbacks import TensorBoard, ModelCheckpoint
     X, Y = get_data()
-    model.fit(
+    clustering_model.fit(
         X, Y,
         epochs=100,
         batch_size=32,
@@ -76,19 +58,20 @@ if predict:
     indexes = np.random.randint(m, size=2)
     samples = X_image[indexes]
 
-    encoder = load_model('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
-    Y_image_1 = utl.get_embeddings(encoder, samples[0, :, :, 0])
-    Y_image_2 = utl.get_embeddings(encoder, samples[1, :, :, 0])
+    encoder_model = mdls.load_encoder_model()
+    Y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
+    Y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
     Y_mix = np.concatenate((Y_image_1, Y_image_2), axis=0)
     m_mix = len(Y_mix)
     assert Y_mix.shape == (m_mix, 17)
 
-    cluster_matrix = utl.calculate_cluster_matrix(model, Y_mix)
+    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, Y_mix)
 
 
 if cluster:
     cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')
     clusters = utl.extract_clusters(cluster_matrix)
+    print(clusters)
 
 
 print('end')

@@ -2,7 +2,6 @@ import numpy as np
 import models as mdls
 import utilities as utl
 import matplotlib.pyplot as plt
-from keras.models import load_model
 from PIL import Image, ImageDraw
 
 
@@ -64,11 +63,11 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 sample = load_data(show=False)
 assert sample.shape == (28, 28)
 
-image_encoder = load_model('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
-autoencoder = load_model('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
-autoencoder_decoder = mdls.gen_decoder_model(autoencoder)
-embeddings = utl.get_embeddings(image_encoder, sample, False)
-clustering_model = load_model('models\pairs_encoded\model_dense_v1-088-0.001555.hdf5')
+decoder_model = mdls.load_decoder_model()
+encoder_model = mdls.load_encoder_model()
+clustering_model = mdls.load_clustering_model()
+
+embeddings = utl.get_embeddings(encoder_model, sample, False)
 cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
 clusters = utl.extract_clusters(cluster_matrix)
 
@@ -85,7 +84,7 @@ for cluster in clusters:
         encoding, center = utl.extract_encoding_and_center(cluster_embedding)
         assert encoding.shape == (14, )
         assert center.shape == (2, )
-        image = utl.gen_image(autoencoder_decoder, encoding, center, show=False)
+        image = utl.gen_image(decoder_model, encoding, center, show=False)
         images.append(image)
 
 show_clusters(sample, images)
