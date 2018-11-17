@@ -1,11 +1,10 @@
 import numpy as np
 import models as mdls
+import utilities as utl
 from keras.layers import Input, Conv2D
 from keras.models import Model
 from keras.optimizers import Adam
 from scipy import spatial
-from sklearn.cluster import KMeans
-from scipy.spatial.distance import cdist
 
 
 preload = False
@@ -15,31 +14,6 @@ analysis = False
 
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
-
-
-def gen_image(decoder, encoding, center, show=False):
-    assert encoding.shape == (14, )
-    import matplotlib.pyplot as plt
-
-    # this is a 14-number encoding for one of the lines in the test set
-    encoding = np.reshape(encoding, (1, 1, 1, 14))
-    image = decoder.predict(encoding)
-    assert image.shape == (1, 28, 28, 1)
-    image = image.reshape(28, 28)
-
-    from_row = 28 + center[1]
-    from_col = 28 + center[0]
-    shifted = np.zeros((84, 84))
-    shifted[from_row:from_row+28, from_col:from_col+28] = image
-    shifted = shifted[28:56, 28:56]
-    assert shifted.shape == (28, 28)
-
-    if show:
-        plt.gray()
-        plt.imshow(shifted)
-        plt.show()
-
-    return shifted
 
 
 # TODO: move to models
@@ -76,25 +50,6 @@ def get_distances(encodings):
 
 
 # TODO: move to utilities
-def show_elbow_curve(encodings, show=False):
-    count = encodings.shape[0]
-    distance_list = list()
-    n_cluster = range(1, min(count - 1, 20))
-
-    for n in n_cluster:
-        kmeans = KMeans(n_clusters=n, random_state=0).fit(encodings)
-        print(kmeans.labels_)
-        distance = np.average(np.min(cdist(encodings, kmeans.cluster_centers_, 'euclidean'), axis=1))
-        print(distance)
-        distance_list.append(distance)
-
-    if show:
-        plt.plot(n_cluster, distance_list)
-        plt.title('elbow curve')
-        plt.show()
-
-
-# TODO: move to utilities
 def get_embeddings(x, idx, show=False):
     # prepare sample
     assert x.shape[1:] == (28, 28, 1)
@@ -124,25 +79,6 @@ def get_embeddings(x, idx, show=False):
     return embeddings, x_sample
 
 
-# TODO: move to utilities
-def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
-    assert embeddings.shape[1:] == (17, )
-
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(embeddings)
-    images = []
-
-    for i in range(n_clusters):
-        center = kmeans.cluster_centers_[i][1:3]
-        center = np.rint(center * 27).astype(int)
-        encoding = kmeans.cluster_centers_[i][3:17]
-        print('cluster center:', center)
-        print('cluster encoding:', encoding)
-        image = gen_image(decoder, encoding, center, show)
-        images.append(image)
-
-    return images
-
-
 def load_data():
     # x = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')
     x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')
@@ -163,6 +99,7 @@ if preload:
     from keras.models import load_model
     # encoder = load_model('models\lines_encoded\lines_encoded_v2-047-0.000024.hdf5')
     encoder = load_model('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
+
 else:
     encoder = get_model()
     optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.00, amsgrad=False)
@@ -176,7 +113,6 @@ if train:
         epochs=60,
         batch_size=32,
         shuffle=True,
-        # validation_split=0.1,
         validation_data=(x, y),
         callbacks=[
             TensorBoard(log_dir='C:\Logs'),
@@ -200,7 +136,6 @@ if predict:
     if predict_single:
 
         idx = random.randint(0, x.shape[0])
-        # idx = 338  # 149
         print('random index:', idx)
         embeddings, _ = get_embeddings(x, idx, True)
 
@@ -209,9 +144,9 @@ if predict:
             print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), offsets[:, 0]))))
             print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), offsets[:, 1]))))
             dist = get_distances(embeddings)
-            show_elbow_curve(embeddings)
+            utl.show_elbow_curve(embeddings)
 
-        decode_clustered_embeddings(decoder, embeddings, 1, True)
+        utl.decode_clustered_embeddings(decoder, embeddings, 1, True)
 
     if predict_multiple:
 
@@ -226,7 +161,7 @@ if predict:
         for i in range(n):
             index = indexes[i]
             embeddings, sample = get_embeddings(x, index, False)
-            images = decode_clustered_embeddings(decoder, embeddings, n_clusters, False)
+            images = utl.decode_clustered_embeddings(decoder, embeddings, n_clusters, False)
 
             # display original
             ax = plt.subplot(fig_rows, n, i + 1)

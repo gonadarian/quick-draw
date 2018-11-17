@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from scipy.spatial.distance import cdist
 
 
 def get_embeddings(encoder, sample, show=False):
@@ -77,5 +79,69 @@ def extract_clusters(cluster_matrix):
     return clusters
 
 
-# TODO
-# def decode_clustered_embeddings():
+def show_elbow_curve(encodings, show=False):
+    count = encodings.shape[0]
+    distance_list = list()
+    n_cluster = range(1, min(count - 1, 20))
+
+    for n in n_cluster:
+        kmeans = KMeans(n_clusters=n, random_state=0).fit(encodings)
+        print('labels:', kmeans.labels_)
+        distance = np.average(np.min(cdist(encodings, kmeans.cluster_centers_, 'euclidean'), axis=1))
+        print('calculated distance:', distance)
+        distance_list.append(distance)
+
+    if show:
+        plt.plot(n_cluster, distance_list)
+        plt.title('elbow curve')
+        plt.show()
+
+
+def gen_image(decoder, encoding, center, show=False):
+    assert encoding.shape == (14, )
+    import matplotlib.pyplot as plt
+
+    # this is a 14-number encoding for one of the lines in the test set
+    encoding = np.reshape(encoding, (1, 1, 1, 14))
+    image = decoder.predict(encoding)
+    assert image.shape == (1, 28, 28, 1)
+    image = image.reshape(28, 28)
+
+    from_row = 28 + center[1]
+    from_col = 28 + center[0]
+    shifted = np.zeros((84, 84))
+    shifted[from_row:from_row+28, from_col:from_col+28] = image
+    shifted = shifted[28:56, 28:56]
+    assert shifted.shape == (28, 28)
+
+    if show:
+        plt.gray()
+        plt.imshow(shifted)
+        plt.show()
+
+    return shifted
+
+
+def extract_encoding_and_center(cluster):
+    center = cluster[1:3]
+    center = np.rint(center * 27).astype(int)
+    encoding = cluster[3:17]
+
+    return encoding, center
+
+
+def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
+    assert embeddings.shape[1:] == (17, )
+
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(embeddings)
+    images = []
+
+    for i in range(n_clusters):
+        cluster = kmeans.cluster_centers_[i]
+        encoding, center = extract_encoding_and_center(cluster)
+        print('cluster center:', center)
+        print('cluster encoding:', encoding)
+        image = gen_image(decoder, encoding, center, show)
+        images.append(image)
+
+    return images
