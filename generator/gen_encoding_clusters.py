@@ -40,9 +40,9 @@ m = samples.shape[0]
 
 encoder = load_model('..\models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
 
-pairs_per_sample = 5
+pairs_per_sample = 5  # total is twice the size, half for positive pairs, half for negative ones
 
-print('start encoding lists...')
+print('start encoding lists...')  # takes a minute or two...
 encoding_lists = []
 
 for i in range(m):
@@ -56,26 +56,23 @@ for i in range(m):
 print('start pairing...')
 other_indexes = rand.sample(range(m), m)
 assert len(other_indexes) == m
+
+# m samples, pps positive and pps negative pairs, two encodings in a pair, 17-dim vector encoding
 pairs = np.zeros((m, 2 * pairs_per_sample, 2, 17))
 
 for i in range(m):
     if i % 100 == 0:
         print('\tpairing is at', i)
 
-    # sample = samples[i, :, :, 0]
-    # encodings = get_encodings(sample, False)
     encodings = encoding_lists[i]
-
-    # other_sample = samples[other_indexes[i], :, :, 0]
-    # other_encodings = get_encodings(other_sample, False)
     other_encodings = encoding_lists[other_indexes[i]]
 
-    # pairs that should match
+    # positive pairs that should match
     pair_indexes = np.random.randint(len(encodings), size=(2, pairs_per_sample))
     pairs[i, :pairs_per_sample, 0, :] = encodings[pair_indexes[0]]
     pairs[i, :pairs_per_sample, 1, :] = encodings[pair_indexes[1]]
 
-    # pairs that should not match
+    # negative pairs that should not match
     pair_indexes = np.random.randint(len(encodings), size=pairs_per_sample)
     other_pair_indexes = np.random.randint(len(other_encodings), size=pairs_per_sample)
     pairs[i, pairs_per_sample:, 0, :] = encodings[pair_indexes]

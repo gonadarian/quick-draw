@@ -1,5 +1,6 @@
 import numpy as np
-from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Dense
+import models as mdls
+from keras.layers import Input, Conv2D
 from keras.models import Model
 from keras.optimizers import Adam
 from scipy import spatial
@@ -14,29 +15,6 @@ analysis = False
 
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
-
-
-def gen_decoder_model(autoencoder, show=False):
-    # remove layers from encoder part of autoencoder
-    for i in range(9):
-        autoencoder.layers.pop(0)
-
-    # add new input layer to represent encoded state with 14 numbers
-    input = Input(shape=(1, 1, 14))
-
-    # relink all the layers again to include new input one in the chain
-    x = input
-    layers = [l for l in autoencoder.layers]
-    for i in range(len(layers)):
-        x = layers[i](x)
-
-    # create new model with this new layer chain
-    decoder = Model(inputs=input, outputs=x)
-
-    if show:
-        decoder.summary()
-
-    return decoder
 
 
 def gen_image(decoder, encoding, center, show=False):
@@ -64,6 +42,7 @@ def gen_image(decoder, encoding, center, show=False):
     return shifted
 
 
+# TODO: move to models
 def get_model():
     input_img = Input(shape=(28, 28, 1))
 
@@ -96,6 +75,7 @@ def get_distances(encodings):
     return distances
 
 
+# TODO: move to utilities
 def show_elbow_curve(encodings, show=False):
     count = encodings.shape[0]
     distance_list = list()
@@ -114,6 +94,7 @@ def show_elbow_curve(encodings, show=False):
         plt.show()
 
 
+# TODO: move to utilities
 def get_embeddings(x, idx, show=False):
     # prepare sample
     assert x.shape[1:] == (28, 28, 1)
@@ -143,6 +124,7 @@ def get_embeddings(x, idx, show=False):
     return embeddings, x_sample
 
 
+# TODO: move to utilities
 def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
     assert embeddings.shape[1:] == (17, )
 
@@ -213,7 +195,7 @@ if predict:
     import random
 
     autoencoder = load_model('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
-    decoder = gen_decoder_model(autoencoder)
+    decoder = mdls.gen_decoder_model(autoencoder)
 
     if predict_single:
 
