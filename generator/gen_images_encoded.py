@@ -1,4 +1,10 @@
+import math as m
 import numpy as np
+import random as rand
+import models as mdls
+
+
+rand.seed(1)
 
 
 def get_shift_matrix():
@@ -13,35 +19,12 @@ def get_shift_matrix():
     return d
 
 
-d = get_shift_matrix()
-assert d.shape == (1, 28, 28, 2)
-
-x = np.load('line_originals_v2_392x28x28.npy')
-x = x.astype('float32') / 255.
-m = x.shape[0]
-x = np.reshape(x, (m, 28, 28, 1))  # adapt this if using `channels_first` image data format
-print("x: ", x.shape)
-
-y = np.zeros((m, 28, 28, 16))
-print("y: ", y.shape)
-
-from keras.models import load_model
-autoencoder = load_model('..\models\lines\model_autoencoder_v2.385-0.0047.hdf5')
-autoencoder.outputs = [autoencoder.layers[8].output]
-
-
-import math
-import random
-
-seed = 1
-random.seed(seed)
-
-
 def generated_shifted_samples(sample, density=0.3):
     assert sample.shape == (28, 28)
 
     [empty_rows, empty_cols] = np.amin(np.where(sample == 1), axis=1)
     sub_image = sample[empty_rows:28 - empty_rows, empty_cols:28 - empty_cols]
+
     # lines are not centered after all.... so +1/-1 on couple of places :(
     rows = 28 - 2 * empty_rows
     cols = 28 - 2 * empty_cols
@@ -50,12 +33,12 @@ def generated_shifted_samples(sample, density=0.3):
                       2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
                       4 * empty_rows * empty_cols
 
-    image_count = math.ceil(max_image_count * density)
+    image_count = m.ceil(max_image_count * density)
     samples = [(sample, 0, 0)]
 
     for i in range(image_count):
-        shift_row = 0 if empty_rows == 0 else random.randint(-empty_rows, empty_rows)
-        shift_col = 0 if empty_cols == 0 else random.randint(-empty_cols, empty_cols)
+        shift_row = 0 if empty_rows == 0 else rand.randint(-empty_rows, empty_rows)
+        shift_col = 0 if empty_cols == 0 else rand.randint(-empty_cols, empty_cols)
         from_row = empty_rows + shift_row
         from_col = empty_cols + shift_col
         shifted_sample = np.zeros((28, 28))
@@ -65,16 +48,30 @@ def generated_shifted_samples(sample, density=0.3):
     return samples
 
 
+d = get_shift_matrix()
+assert d.shape == (1, 28, 28, 2)
+
+x = np.load('data\line_originals_v2_392x28x28.npy')
+x = x.astype('float32') / 255.
+m = x.shape[0]
+x = np.reshape(x, (m, 28, 28, 1))
+print("x: ", x.shape)
+
+y = np.zeros((m, 28, 28, 16))
+print("y: ", y.shape)
+
+autoencoder_model = mdls.load_autoencoder_model()
+autoencoder_model.outputs = [autoencoder_model.layers[8].output]
+
 assert x.shape == (392, 28, 28, 1)
 x_list = []
 y_list = []
 
 for i in range(m):
     x_sample = [x[[i], ...]]
-    encoding = autoencoder.predict(x_sample)
+    encoding = autoencoder_model.predict(x_sample)
     assert encoding.shape == (1, 1, 1, 14)
     encoding = encoding.reshape((1, 1, 14))
-    # print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), encoding[0, 0, :]))))
 
     x_sample = x_sample[0][0, :, :, 0]
     assert x_sample.shape == (28, 28)

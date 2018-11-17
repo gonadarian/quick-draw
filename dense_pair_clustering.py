@@ -2,6 +2,7 @@ import numpy as np
 import models as mdls
 import random as rand
 import utilities as utl
+from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 preload = True
@@ -16,6 +17,7 @@ np.random.seed(1)
 def get_data():
     X = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')
     assert X.shape == (7234, 10, 2, 17)
+
     X = X.reshape((72340, 34))
     m = X.shape[0]
 
@@ -34,7 +36,6 @@ elif train or predict:
 
 
 if train:
-    from keras.callbacks import TensorBoard, ModelCheckpoint
     X, Y = get_data()
     clustering_model.fit(
         X, Y,
@@ -54,11 +55,13 @@ if train:
 if predict:
     X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')
     assert X_image.shape == (7234, 28, 28, 1)
+
     m = X_image.shape[0]
     indexes = np.random.randint(m, size=2)
     samples = X_image[indexes]
 
     encoder_model = mdls.load_encoder_model()
+
     Y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
     Y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
     Y_mix = np.concatenate((Y_image_1, Y_image_2), axis=0)
@@ -70,6 +73,9 @@ if predict:
 
 if cluster:
     cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')
+
+
+if predict or cluster:
     clusters = utl.extract_clusters(cluster_matrix)
     print(clusters)
 

@@ -4,14 +4,6 @@ import random as rand
 
 rand.seed(1)
 
-samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
-encodings = np.load('data\line_encodings_v2_7234x28x28x16.npy')
-assert samples.shape == (7234, 28, 28, 1)
-assert encodings.shape == (7234, 28, 28, 17)
-assert samples.shape[0] == encodings.shape[0]
-
-m = samples.shape[0]
-
 
 def mix_samples(index_1, index_2):
     print('mixing', index_1, 'and', index_2)
@@ -30,6 +22,14 @@ def mix_samples(index_1, index_2):
 
     return sample_mix, encoding_mix
 
+
+samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
+encodings = np.load('data\line_encodings_v2_7234x28x28x16.npy')
+assert samples.shape == (7234, 28, 28, 1)
+assert encodings.shape == (7234, 28, 28, 17)
+assert samples.shape[0] == encodings.shape[0]
+
+m = samples.shape[0]
 
 indexes = rand.sample(range(m), m)
 assert len(indexes) == m

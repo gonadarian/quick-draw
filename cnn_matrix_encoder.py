@@ -4,9 +4,8 @@ import random as rand
 import utilities as utl
 import matplotlib.pyplot as plt
 from scipy import spatial
-from keras.models import load_model
-from keras.optimizers import Adam
 from keras.callbacks import TensorBoard, ModelCheckpoint
+
 
 preload = False
 train = True
@@ -78,7 +77,6 @@ if preload:
 
 else:
     encoder_model = mdls.create_encoder_model()
-    optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.00, amsgrad=False)
     encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
 
@@ -103,8 +101,7 @@ if predict:
     predict_single = False
     predict_multiple = True
 
-    autoencoder = load_model('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
-    decoder = mdls.gen_decoder_model(autoencoder)
+    decoder_model = mdls.load_decoder_model()
 
     if predict_single:
 
@@ -119,7 +116,7 @@ if predict:
             dist = get_distances(embeddings)
             utl.show_elbow_curve(embeddings)
 
-        utl.decode_clustered_embeddings(decoder, embeddings, 1, True)
+        utl.decode_clustered_embeddings(decoder_model, embeddings, 1, True)
 
     if predict_multiple:
 
@@ -134,7 +131,7 @@ if predict:
         for i in range(n):
             index = indexes[i]
             embeddings, sample = get_embeddings(x, index, False)
-            images = utl.decode_clustered_embeddings(decoder, embeddings, n_clusters, False)
+            images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, False)
 
             # display original
             ax = plt.subplot(fig_rows, n, i + 1)

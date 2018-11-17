@@ -6,19 +6,18 @@ img_size = 28
 
 
 def get_img_array(x, y, show=False):
-    im = Image.new("L", (28, 28), "black")
+    image = Image.new("L", (28, 28), "black")
 
-    draw = ImageDraw.Draw(im)
+    draw = ImageDraw.Draw(image)
     draw.line((x, y, img_size-1 - x, img_size-1 - y), fill=255)
-    im_array = np.asarray(im)
+    image_array = np.asarray(image)
+
     if show:
-        print(im_array)
-        # im.show()
+        print(image_array)
+        image.show()
 
-    return im_array
+    return image_array
 
-
-# get_img_array(5, 10, True)
 
 im_set = np.empty([img_size ** 2 // 2, img_size, img_size])
 
