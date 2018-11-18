@@ -1,14 +1,26 @@
 import numpy as np
+import random as rand
 import models as mdls
 import utilities as utl
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 
+quick_draw_data = True
+custom_data = False
 analysis = False
 
+np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
-def load_data(show=False, shape_choice=1):
+
+def load_quick_draw_data_set():
+    data = np.load('generator/data/triangle.npy')
+    data = data.reshape((-1, 28, 28))
+    data = data.astype('float32') / 255.
+    return data
+
+
+def load_custom_data_sample(show=False, shape_choice=1):
     im = Image.new("L", (28, 28), "black")
     draw = ImageDraw.Draw(im)
 
@@ -44,30 +56,22 @@ def load_data(show=False, shape_choice=1):
     return data
 
 
-def show_clusters(input_image, cluster_images):
-    # display regenerated lines alongside original sample
-    n_clusters = len(cluster_images)
-    fig = plt.figure(figsize=(1, n_clusters + 1))
+if quick_draw_data:
+    data_set = load_quick_draw_data_set()
+    index = rand.randint(0, len(data_set))
+    print('using quick draw sample', index)
+    sample = data_set[index, :, :]
 
-    for i in range(n_clusters):
-        fig.add_subplot(1, n_clusters + 1, i + 1)
-        plt.imshow(cluster_images[i])
+if custom_data:
+    sample = load_custom_data_sample(show=False)
 
-    fig.add_subplot(1, n_clusters + 1, n_clusters + 1)
-    plt.imshow(input_image)
-    plt.show()
-
-
-np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
-
-sample = load_data(show=False)
 assert sample.shape == (28, 28)
 
 decoder_model = mdls.load_decoder_model()
 encoder_model = mdls.load_encoder_model()
 clustering_model = mdls.load_clustering_model()
 
-embeddings = utl.get_embeddings(encoder_model, sample, False)
+embeddings = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
 cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
 clusters = utl.extract_clusters(cluster_matrix)
 
@@ -87,7 +91,7 @@ for cluster in clusters:
         image = utl.gen_image(decoder_model, encoding, center, show=False)
         images.append(image)
 
-show_clusters(sample, images)
+utl.show_clusters(sample, images)
 
 
 print('end')

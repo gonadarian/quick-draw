@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
-def get_embeddings(encoder, sample, show=False):
+def get_embeddings(encoder, sample, threshold=1, show=False):
     # prepare sample
     assert sample.shape == (28, 28)
     sample = sample.reshape((1, 28, 28, 1))
@@ -16,7 +16,7 @@ def get_embeddings(encoder, sample, show=False):
 
     # extract relevant pixels
     sample = sample.reshape(28, 28)
-    idx_sample = np.argwhere(sample == 1)
+    idx_sample = np.argwhere(sample >= threshold)
     assert idx_sample.shape[1:] == (2, )
     embeddings = y_pred[idx_sample[:, 0], idx_sample[:, 1], :]
 
@@ -145,3 +145,30 @@ def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
         images.append(image)
 
     return images
+
+
+def show_clusters(input_image, cluster_images):
+    assert input_image.shape == (28, 28)
+    n = len(cluster_images)
+    cluster_mix = np.array(cluster_images)
+    assert cluster_mix.shape == (n, 28, 28)
+    cluster_mix = np.amax(cluster_mix, axis=0)
+    assert cluster_mix.shape == (28, 28)
+
+    cols = n + 2
+    fig = plt.figure(figsize=(1, cols))
+
+    # display regenerated lines
+    for i in range(n):
+        fig.add_subplot(1, cols, i + 1)
+        plt.imshow(cluster_images[i])
+
+    # display combination of all cluster images
+    fig.add_subplot(1, cols, n + 1)
+    plt.imshow(cluster_mix)
+
+    # display original source image
+    fig.add_subplot(1, cols, n + 2)
+    plt.imshow(input_image)
+
+    plt.show()
