@@ -7,10 +7,10 @@ from scipy import spatial
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
-preload = False
-train = True
-predict = False
-analysis = False
+preload = True
+train = False
+predict = True
+analysis = True
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
@@ -28,36 +28,6 @@ def get_distances(encodings):
     return distances
 
 
-# TODO: move to utilities
-def get_embeddings(x, idx, show=False):
-    # prepare sample
-    assert x.shape[1:] == (28, 28, 1)
-    x_sample = x[[idx], ...]
-    assert x_sample.shape == (1, 28, 28, 1)
-
-    # get prediction
-    y_pred = encoder_model.predict(x_sample)
-    assert y_pred.shape == (1, 28, 28, 17)
-    y_pred = y_pred[0]
-
-    # extract relevant pixels
-    x_sample = x_sample.reshape(28, 28)
-    idx_sample = np.argwhere(x_sample == 1)
-    assert idx_sample.shape[1:] == (2, )
-    embeddings = y_pred[idx_sample[:, 0], idx_sample[:, 1], :]
-
-    # convert from relative positions which can't be compared,
-    # to absolute ones suitable for k-means clustering
-    centers = idx_sample[:,[1,0]]/27-.5 + embeddings[:,1:3]
-    embeddings[:,1:3] = centers
-
-    if show:
-        plt.imshow(x_sample)
-        plt.show()
-
-    return embeddings, x_sample
-
-
 def load_data():
     x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')
     assert x.shape[1:] == (28, 28, 1)
@@ -69,7 +39,7 @@ def load_data():
     return x, y, m
 
 
-x, y, m = load_data()
+X, Y, m = load_data()
 
 
 if preload:
@@ -82,11 +52,11 @@ else:
 
 if train:
     encoder_model.fit(
-        x, y,
+        X, Y,
         epochs=60,
         batch_size=32,
         shuffle=True,
-        validation_data=(x, y),
+        validation_data=(X, Y),
         callbacks=[
             TensorBoard(log_dir='C:\Logs'),
             ModelCheckpoint(
@@ -105,9 +75,10 @@ if predict:
 
     if predict_single:
 
-        idx = rand.randint(0, x.shape[0])
+        idx = rand.randint(0, X.shape[0])
         print('random index:', idx)
-        embeddings, _ = get_embeddings(x, idx, True)
+        sample = X[idx, :, :, 0]
+        embeddings = utl.get_embeddings(encoder_model, sample, True)
 
         if analysis:
             offsets = embeddings[:, 1:3]
@@ -126,17 +97,16 @@ if predict:
         fig_cols = n
 
         plt.figure(figsize=(fig_rows * fig_cols, 4))
-        indexes = rand.sample(range(1, x.shape[0]), n)
+        indexes = rand.sample(range(1, X.shape[0]), n)
 
         for i in range(n):
-            index = indexes[i]
-            embeddings, sample = get_embeddings(x, index, False)
+            sample = X[indexes[i], :, :, 0]
+            embeddings = utl.get_embeddings(encoder_model, sample, False)
             images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, False)
 
             # display original
             ax = plt.subplot(fig_rows, n, i + 1)
-            img_original = sample  # .reshape(28, 28)
-            plt.imshow(img_original)
+            plt.imshow(sample)
             plt.gray()
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
