@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 
-quick_draw_data = True
-custom_data = False
+quick_draw_data = False
+custom_data = not quick_draw_data
+custom_shape = 1
 analysis = False
 
-np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
+np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
 def load_quick_draw_data_set():
@@ -20,29 +21,29 @@ def load_quick_draw_data_set():
     return data
 
 
-def load_custom_data_sample(show=False, shape_choice=1):
+def load_custom_data_sample(shape=1, show=False):
     im = Image.new("L", (28, 28), "black")
     draw = ImageDraw.Draw(im)
 
-    if shape_choice == 0:  # shape: square
+    if shape == 0:  # shape: square
         draw.line((5,  5, 5,  22), fill=255)
         draw.line((5,  5, 22, 5), fill=255)
         draw.line((22, 5, 22, 22), fill=255)
         draw.line((5, 22, 22, 22), fill=255)
 
-    if shape_choice == 1:  # shape: rhomboid
+    if shape == 1:  # shape: rhomboid
         draw.line((5,  14, 14, 5), fill=255)
         draw.line((14, 5,  23, 14), fill=255)
         draw.line((23, 14, 14, 23), fill=255)
         draw.line((14, 23, 5,  14), fill=255)
 
-    if shape_choice == 2:  # shape: tilted, parallel lines
+    if shape == 2:  # shape: tilted, parallel lines
         draw.line((2, 2,  25, 6), fill=255)
         draw.line((2, 8,  25, 12), fill=255)
         draw.line((2, 14, 25, 18), fill=255)
         draw.line((2, 20, 25, 24), fill=255)
 
-    if shape_choice == 3:  # shape: star
+    if shape == 3:  # shape: star
         draw.line((5,  10, 23, 18), fill=255)
         draw.line((10, 5,  18, 23), fill=255)
         draw.line((18, 5,  10, 23), fill=255)
@@ -63,7 +64,7 @@ if quick_draw_data:
     sample = data_set[index, :, :]
 
 if custom_data:
-    sample = load_custom_data_sample(show=False)
+    sample = load_custom_data_sample(shape=custom_shape, show=False)
 
 assert sample.shape == (28, 28)
 
@@ -92,6 +93,13 @@ for cluster in clusters:
         images.append(image)
 
 utl.show_clusters(sample, images)
+
+adjacency_matrix = utl.get_adjacency_matrix(images, show=True)
+adjacency_matrix = adjacency_matrix > -30
+print(adjacency_matrix)
+
+edges = utl.get_graph_edges(adjacency_matrix)
+utl.draw_graph(edges)
 
 
 print('end')

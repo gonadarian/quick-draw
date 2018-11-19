@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
@@ -53,7 +54,7 @@ def calculate_cluster_matrix(model, embeddings):
     return Y
 
 
-def extract_clusters(cluster_matrix):
+def extract_clusters(cluster_matrix, debug=False):
     m = cluster_matrix.shape[0]
     assert cluster_matrix.shape == (m, m)
     cluster_matrix = np.rint(cluster_matrix).astype(int)
@@ -62,7 +63,8 @@ def extract_clusters(cluster_matrix):
     for row in range(m):
         row_indexes = np.argwhere(cluster_matrix[row, :] == 1)[:, 0]
         indexes.append(row_indexes)
-        print('row', row, '\t:', '\t'.join(list(map(lambda x: str(x), row_indexes))))
+        if debug:
+            print('row', row, '\t:', '\t'.join(list(map(lambda x: str(x), row_indexes))))
 
     clusters = []
     for row, row_indexes in enumerate(indexes):
@@ -171,4 +173,49 @@ def show_clusters(input_image, cluster_images):
     fig.add_subplot(1, cols, n + 2)
     plt.imshow(input_image)
 
+    plt.show()
+
+
+def get_adjacency_matrix(images, show=False):
+    dim = len(images)
+    matrix = np.array(images).reshape((dim, 28 * 28))
+    adjacency_matrix = np.dot(matrix, matrix.T)
+    adjacency_matrix[range(dim), range(dim)] = 0
+    adjacency_matrix = np.log(adjacency_matrix)
+
+    if show:
+        print(adjacency_matrix)
+
+    return adjacency_matrix
+
+
+def get_graph_edges(adjacency_matrix):
+    # adjacency matrix has duplicate info, so remove one triangle of values
+    adjacency_matrix[np.triu_indices(len(adjacency_matrix))] = False
+    # get indexes of True values
+    rows, cols = np.where(adjacency_matrix)
+    edges = list(zip(rows, cols))
+
+    return edges
+
+
+def draw_graph(edges):
+    # extract nodes from graph
+    nodes = set([n1 for n1, n2 in edges] + [n2 for n1, n2 in edges])
+    # create networkx graph
+    G = nx.Graph()
+
+    # add nodes
+    for node in nodes:
+        G.add_node(node)
+
+    # add edges
+    for edge in edges:
+        G.add_edge(edge[0], edge[1])
+
+    # draw graph
+    pos = nx.shell_layout(G)
+    nx.draw(G, pos)
+
+    # show graph
     plt.show()
