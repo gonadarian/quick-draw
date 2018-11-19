@@ -1,3 +1,4 @@
+import math as m
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -219,3 +220,54 @@ def draw_graph(edges):
 
     # show graph
     plt.show()
+
+
+def get_regions(region_count=8, show=False):
+    region_range = 2 * m.pi / region_count
+
+    region_borders = np.zeros((region_count+2,))
+    region_borders[0] = -m.pi
+    for i in range(region_count):
+        border = -m.pi + region_range / 2 + i * region_range
+        region_borders[i + 1] = border
+    region_borders[region_count + 1] = +m.pi
+
+    regions = np.zeros((region_count+1, 3))
+    regions[:, 0] = region_borders[:-1]
+    regions[:, 1] = region_borders[1:]
+    regions[:-1, 2] = range(region_count)
+
+    if show:
+        print('borders:', region_borders)
+        print('regions:', regions)
+
+    return regions
+
+
+def get_region_matrix(nodes, regions, show=False):
+    node_count = len(nodes)
+    region_matrix = np.zeros((node_count, node_count, 5))
+
+    for i in range(node_count):
+        for j in range(node_count):
+            if i == j:
+                region_matrix[i, j, :] = m.nan
+                continue
+
+            dx = nodes[j, 1] - nodes[i, 1]
+            dy = nodes[j, 2] - nodes[i, 2]
+            rad = m.atan2(dy, dx)
+            deg = rad * 180 / m.pi
+            region_matrix[i, j, 0] = dx
+            region_matrix[i, j, 1] = dy
+            region_matrix[i, j, 2] = rad
+            region_matrix[i, j, 3] = deg
+            region_index = np.logical_and(regions[:, 0] <= rad, regions[:, 1] >= rad)
+            region_index = np.argwhere(region_index).reshape((1,))
+            region = regions[region_index].reshape((3,))
+            region_matrix[i, j, 4] = region[2]
+
+            if show:
+                print('region:', i, j, region)
+
+    return region_matrix

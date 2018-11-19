@@ -10,6 +10,7 @@ quick_draw_data = False
 custom_data = not quick_draw_data
 custom_shape = 1
 analysis = False
+saving = True
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
@@ -82,6 +83,7 @@ if analysis:
     plt.show()
 
 images = []
+lines = []
 for cluster in clusters:
     if len(cluster) > 2:
         cluster_embeddings = embeddings[list(cluster)]
@@ -91,6 +93,7 @@ for cluster in clusters:
         assert center.shape == (2, )
         image = utl.gen_image(decoder_model, encoding, center, show=False)
         images.append(image)
+        lines.append(cluster_embedding)
 
 utl.show_clusters(sample, images)
 
@@ -101,5 +104,10 @@ print(adjacency_matrix)
 edges = utl.get_graph_edges(adjacency_matrix)
 utl.draw_graph(edges)
 
+if saving:
+    print(lines)
+    np.save('generator/data/graph_lines.npy', np.array(lines))
+    print(edges)
+    np.save('generator/data/graph_edges.npy', np.array(edges))
 
 print('end')
