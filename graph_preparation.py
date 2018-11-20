@@ -1,15 +1,16 @@
 import numpy as np
 import utilities as utl
+import datasets as ds
 
 
 dim = 4
 real_data = True
 
 
-nodes = np.load('generator/data/graph_lines.npy') if real_data else np.arange(dim * 17).reshape((dim, 17))
+nodes = ds.load_graph_lines() if real_data else np.arange(dim * 17).reshape((dim, 17))
 assert nodes.shape == (dim, 17)
 
-edges = np.load('generator/data/graph_edges.npy')
+edges = ds.load_graph_edges()
 assert edges.shape == (dim, 2)
 
 print('nodes:', nodes)

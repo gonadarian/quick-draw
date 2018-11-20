@@ -36,7 +36,7 @@ def get_encodings(sample, show=False):
     return embeddings
 
 
-samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
+samples = np.load('data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
 assert samples.shape == (7234, 28, 28, 1)
 m = samples.shape[0]
 

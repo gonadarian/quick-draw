@@ -16,7 +16,7 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
 def load_quick_draw_data_set():
-    data = np.load('generator/data/triangle.npy')
+    data = np.load('generator/data/triangle.npy')  # TODO use datasets load method
     data = data.reshape((-1, 28, 28))
     data = data.astype('float32') / 255.
     return data

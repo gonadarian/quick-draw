@@ -15,7 +15,7 @@ np.random.seed(1)
 
 
 def get_data():
-    X = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')
+    X = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')  # TODO use datasets load method
     assert X.shape == (7234, 10, 2, 17)
 
     X = X.reshape((72340, 34))
@@ -53,7 +53,7 @@ if train:
 
 
 if predict:
-    X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')
+    X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
     assert X_image.shape == (7234, 28, 28, 1)
 
     m = X_image.shape[0]
@@ -72,7 +72,7 @@ if predict:
 
 
 if cluster:
-    cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')
+    cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')  # TODO use datasets load method
 
 
 if predict or cluster:

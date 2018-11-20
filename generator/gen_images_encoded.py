@@ -51,7 +51,7 @@ def generated_shifted_samples(sample, density=0.3):
 d = get_shift_matrix()
 assert d.shape == (1, 28, 28, 2)
 
-x = np.load('data\line_originals_v2_392x28x28.npy')
+x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
 x = x.astype('float32') / 255.
 m = x.shape[0]
 x = np.reshape(x, (m, 28, 28, 1))

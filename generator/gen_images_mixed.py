@@ -23,8 +23,8 @@ def mix_samples(index_1, index_2):
     return sample_mix, encoding_mix
 
 
-samples = np.load('data\line_samples_v2_7234x28x28x1.npy')
-encodings = np.load('data\line_encodings_v2_7234x28x28x16.npy')
+samples = np.load('data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
+encodings = np.load('data\line_encodings_v2_7234x28x28x16.npy')  # TODO use datasets load method
 assert samples.shape == (7234, 28, 28, 1)
 assert encodings.shape == (7234, 28, 28, 17)
 assert samples.shape[0] == encodings.shape[0]

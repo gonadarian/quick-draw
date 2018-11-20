@@ -22,7 +22,7 @@ else:
 
 print(autoencoder_model.summary())
 
-X = np.load('generator\data\line_originals_v2_392x28x28.npy')
+X = np.load('generator\data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
 X = X.astype('float32') / 255.
 X = np.reshape(X, (len(X), 28, 28, 1))
 sample_count = X.shape[0]

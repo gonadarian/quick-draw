@@ -29,11 +29,11 @@ def get_distances(encodings):
 
 
 def load_data():
-    x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')
+    x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
     assert x.shape[1:] == (28, 28, 1)
     m = x.shape[0]
     x = np.reshape(x, (m, 28, 28, 1))
-    y = np.load('generator\data\line_mixed_encodings_v2_7234x28x28x17.npy')
+    y = np.load('generator\data\line_mixed_encodings_v2_7234x28x28x17.npy')  # TODO use datasets load method
     assert y.shape[1:] == (28, 28, 17)
     assert y.shape[0] == m
     return x, y, m
