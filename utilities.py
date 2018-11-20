@@ -190,6 +190,18 @@ def get_adjacency_matrix(images, show=False):
     return adjacency_matrix
 
 
+def get_adjacency_matrix_from_edges(dim, edges, self_connected=True):
+    adjacency_matrix = np.zeros((dim, dim))
+    adjacency_matrix[edges[:, 0], edges[:, 1]] = 1
+    adjacency_matrix += adjacency_matrix.T
+
+    if self_connected:
+        diag_indexes = range(dim)
+        adjacency_matrix[diag_indexes, diag_indexes] = 1
+
+    return adjacency_matrix
+
+
 def get_graph_edges(adjacency_matrix):
     # adjacency matrix has duplicate info, so remove one triangle of values
     adjacency_matrix[np.triu_indices(len(adjacency_matrix))] = False
@@ -232,10 +244,10 @@ def get_regions(region_count=8, show=False):
         region_borders[i + 1] = border
     region_borders[region_count + 1] = +m.pi
 
-    regions = np.zeros((region_count+1, 3))
+    regions = np.ones((region_count+1, 3))
     regions[:, 0] = region_borders[:-1]
     regions[:, 1] = region_borders[1:]
-    regions[:-1, 2] = range(region_count)
+    regions[:-1, 2] = range(1, region_count + 1)
 
     if show:
         print('borders:', region_borders)
@@ -251,23 +263,43 @@ def get_region_matrix(nodes, regions, show=False):
     for i in range(node_count):
         for j in range(node_count):
             if i == j:
-                region_matrix[i, j, :] = m.nan
+                # center node uses reserved region 0
+                region_matrix[i, j, :] = [0, 0, m.nan, m.nan, 0]
                 continue
 
             dx = nodes[j, 1] - nodes[i, 1]
             dy = nodes[j, 2] - nodes[i, 2]
             rad = m.atan2(dy, dx)
             deg = rad * 180 / m.pi
-            region_matrix[i, j, 0] = dx
-            region_matrix[i, j, 1] = dy
-            region_matrix[i, j, 2] = rad
-            region_matrix[i, j, 3] = deg
             region_index = np.logical_and(regions[:, 0] <= rad, regions[:, 1] >= rad)
             region_index = np.argwhere(region_index).reshape((1,))
             region = regions[region_index].reshape((3,))
-            region_matrix[i, j, 4] = region[2]
 
             if show:
                 print('region:', i, j, region)
 
-    return region_matrix
+            region_matrix[i, j, 0] = dx
+            region_matrix[i, j, 1] = dy
+            region_matrix[i, j, 2] = rad
+            region_matrix[i, j, 3] = deg
+            region_matrix[i, j, 4] = region[2]
+
+    return region_matrix[:, :, 4]
+
+
+def get_matrix_transformation(adjacency_matrix, region_matrix, nodes):
+    dim = len(nodes)
+    assert adjacency_matrix.shape == (dim, dim)
+    assert region_matrix.shape == (dim, dim)
+
+    edge_indexes = np.argwhere(adjacency_matrix == 1)
+    cell_vectors = nodes[edge_indexes[:, 1]]
+    column_indexes = region_matrix[edge_indexes[:, 0], edge_indexes[:, 1]].astype(dtype=np.uint8)
+    row_indexes = edge_indexes[:, 0]
+
+    edge_count = np.count_nonzero(adjacency_matrix) // 2
+    assert len(row_indexes) == edge_count * 2
+    assert len(column_indexes) == edge_count * 2
+    assert len(cell_vectors) == edge_count * 2
+
+    return row_indexes, column_indexes, cell_vectors
