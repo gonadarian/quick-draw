@@ -295,19 +295,26 @@ def get_region_matrix(nodes, regions, show=False, debug=False):
     return region_matrix[:, :, 4] if debug else region_matrix
 
 
-def get_matrix_transformation(adjacency_matrix, region_matrix, nodes):
-    dim = len(nodes)
+def get_matrix_transformation(adjacency_matrix, region_matrix):
+    dim = len(adjacency_matrix)
     assert adjacency_matrix.shape == (dim, dim)
     assert region_matrix.shape == (dim, dim)
 
     edge_indexes = np.argwhere(adjacency_matrix == 1)
-    cell_vectors = nodes[edge_indexes[:, 1]]
-    column_indexes = region_matrix[edge_indexes[:, 0], edge_indexes[:, 1]].astype(dtype=np.uint8)
+    node_indexes = edge_indexes[:, 1]
     row_indexes = edge_indexes[:, 0]
+    column_indexes = region_matrix[edge_indexes[:, 0], edge_indexes[:, 1]].astype(dtype=np.uint8)
 
     edge_count = np.count_nonzero(adjacency_matrix) // 2
     assert len(row_indexes) == edge_count * 2
     assert len(column_indexes) == edge_count * 2
-    assert len(cell_vectors) == edge_count * 2
+    assert len(node_indexes) == edge_count * 2
 
-    return row_indexes, column_indexes, cell_vectors
+    return row_indexes, column_indexes, node_indexes
+
+
+def get_vector_transformation(adjacency_matrix, region_matrix):
+    row_indexes, column_indexes, node_indexes = get_matrix_transformation(adjacency_matrix, region_matrix)
+    vector_indexes = row_indexes * 9 + column_indexes
+
+    return vector_indexes, node_indexes
