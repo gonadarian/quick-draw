@@ -8,6 +8,7 @@ real_data = True
 
 
 def main():
+
     nodes = ds.load_graph_lines() if real_data else np.arange(dim * 17).reshape((dim, 17))
     assert nodes.shape == (dim, 17)
 
