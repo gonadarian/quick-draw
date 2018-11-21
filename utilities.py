@@ -205,6 +205,7 @@ def get_adjacency_matrix_from_edges(dim, edges, self_connected=True):
 def get_graph_edges(adjacency_matrix):
     # adjacency matrix has duplicate info, so remove one triangle of values
     adjacency_matrix[np.triu_indices(len(adjacency_matrix))] = False
+
     # get indexes of True values
     rows, cols = np.where(adjacency_matrix)
     edges = list(zip(rows, cols))
@@ -215,6 +216,7 @@ def get_graph_edges(adjacency_matrix):
 def draw_graph(edges):
     # extract nodes from graph
     nodes = set([n1 for n1, n2 in edges] + [n2 for n1, n2 in edges])
+
     # create networkx graph
     G = nx.Graph()
 
@@ -256,15 +258,18 @@ def get_regions(region_count=8, show=False):
     return regions
 
 
-def get_region_matrix(nodes, regions, show=False):
+def get_region_matrix(nodes, regions, show=False, debug=False):
     node_count = len(nodes)
-    region_matrix = np.zeros((node_count, node_count, 5))
+    region_matrix = np.zeros((node_count, node_count, 5)) if debug else np.zeros((node_count, node_count))
 
     for i in range(node_count):
         for j in range(node_count):
             if i == j:
                 # center node uses reserved region 0
-                region_matrix[i, j, :] = [0, 0, m.nan, m.nan, 0]
+                if debug:
+                    region_matrix[i, j, :] = [0, 0, m.nan, m.nan, 0]
+                else:
+                    region_matrix[i, j] = 0
                 continue
 
             dx = nodes[j, 1] - nodes[i, 1]
@@ -272,19 +277,22 @@ def get_region_matrix(nodes, regions, show=False):
             rad = m.atan2(dy, dx)
             deg = rad * 180 / m.pi
             region_index = np.logical_and(regions[:, 0] <= rad, regions[:, 1] >= rad)
-            region_index = np.argwhere(region_index).reshape((1,))
-            region = regions[region_index].reshape((3,))
+            region_index = np.argwhere(region_index).reshape((1, ))
+            region = regions[region_index].reshape((3, ))
 
             if show:
                 print('region:', i, j, region)
 
-            region_matrix[i, j, 0] = dx
-            region_matrix[i, j, 1] = dy
-            region_matrix[i, j, 2] = rad
-            region_matrix[i, j, 3] = deg
-            region_matrix[i, j, 4] = region[2]
+            if debug:
+                region_matrix[i, j, 0] = dx
+                region_matrix[i, j, 1] = dy
+                region_matrix[i, j, 2] = rad
+                region_matrix[i, j, 3] = deg
+                region_matrix[i, j, 4] = region[2]
+            else:
+                region_matrix[i, j] = region[2]
 
-    return region_matrix[:, :, 4]
+    return region_matrix[:, :, 4] if debug else region_matrix
 
 
 def get_matrix_transformation(adjacency_matrix, region_matrix, nodes):

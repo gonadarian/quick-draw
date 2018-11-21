@@ -8,13 +8,13 @@ rand.seed(1)
 
 
 # TODO replace with utilities implementation
-def get_encodings(sample, show=False):
+def get_encodings(encoder, sample, show=False):
     # prepare sample
     assert sample.shape == (28, 28)
     sample = sample.reshape((1, 28, 28, 1))
 
     # get prediction
-    y_pred = encoder_model.predict(sample)
+    y_pred = encoder.predict(sample)
     assert y_pred.shape == (1, 28, 28, 17)
     y_pred = y_pred[0]
 
@@ -36,52 +36,56 @@ def get_encodings(sample, show=False):
     return embeddings
 
 
-samples = np.load('data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
-assert samples.shape == (7234, 28, 28, 1)
-m = samples.shape[0]
+def main():
 
-encoder_model = mdls.load_encoder_model()
+    samples = np.load('data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
+    assert samples.shape == (7234, 28, 28, 1)
+    m = samples.shape[0]
 
-pairs_per_sample = 5  # total is twice the size, half for positive pairs, half for negative ones
+    encoder_model = mdls.load_encoder_model()
 
-print('start encoding lists...')  # takes a minute or two...
-encoding_lists = []
+    pairs_per_sample = 5  # total is twice the size, half for positive pairs, half for negative ones
 
-for i in range(m):
-    if i % 100 == 0:
-        print('\tencoding is at', i)
+    print('start encoding lists...')  # takes a minute or two...
+    encoding_lists = []
 
-    sample = samples[i, :, :, 0]
-    encoding_list = get_encodings(sample, False)
-    encoding_lists.append(encoding_list)
+    for i in range(m):
+        if i % 100 == 0:
+            print('\tencoding is at', i)
 
-print('start pairing...')
-other_indexes = rand.sample(range(m), m)
-assert len(other_indexes) == m
+        sample = samples[i, :, :, 0]
+        encoding_list = get_encodings(encoder_model, sample, False)
+        encoding_lists.append(encoding_list)
 
-# m samples, pps positive and pps negative pairs, two encodings in a pair, 17-dim vector encoding
-pairs = np.zeros((m, 2 * pairs_per_sample, 2, 17))
+    print('start pairing...')
+    other_indexes = rand.sample(range(m), m)
+    assert len(other_indexes) == m
 
-for i in range(m):
-    if i % 100 == 0:
-        print('\tpairing is at', i)
+    # m samples, pps positive and pps negative pairs, two encodings in a pair, 17-dim vector encoding
+    pairs = np.zeros((m, 2 * pairs_per_sample, 2, 17))
 
-    encodings = encoding_lists[i]
-    other_encodings = encoding_lists[other_indexes[i]]
+    for i in range(m):
+        if i % 100 == 0:
+            print('\tpairing is at', i)
 
-    # positive pairs that should match
-    pair_indexes = np.random.randint(len(encodings), size=(2, pairs_per_sample))
-    pairs[i, :pairs_per_sample, 0, :] = encodings[pair_indexes[0]]
-    pairs[i, :pairs_per_sample, 1, :] = encodings[pair_indexes[1]]
+        encodings = encoding_lists[i]
+        other_encodings = encoding_lists[other_indexes[i]]
 
-    # negative pairs that should not match
-    pair_indexes = np.random.randint(len(encodings), size=pairs_per_sample)
-    other_pair_indexes = np.random.randint(len(other_encodings), size=pairs_per_sample)
-    pairs[i, pairs_per_sample:, 0, :] = encodings[pair_indexes]
-    pairs[i, pairs_per_sample:, 1, :] = other_encodings[other_pair_indexes]
+        # positive pairs that should match
+        pair_indexes = np.random.randint(len(encodings), size=(2, pairs_per_sample))
+        pairs[i, :pairs_per_sample, 0, :] = encodings[pair_indexes[0]]
+        pairs[i, :pairs_per_sample, 1, :] = encodings[pair_indexes[1]]
+
+        # negative pairs that should not match
+        pair_indexes = np.random.randint(len(encodings), size=pairs_per_sample)
+        other_pair_indexes = np.random.randint(len(other_encodings), size=pairs_per_sample)
+        pairs[i, pairs_per_sample:, 0, :] = encodings[pair_indexes]
+        pairs[i, pairs_per_sample:, 1, :] = other_encodings[other_pair_indexes]
+
+    np.save('data\encoding_clusters_v2_{}x10x2x17.npy'.format(m), pairs)
+    print('saved data', m)
 
 
-np.save('data\encoding_clusters_v2_{}x10x2x17.npy'.format(m), pairs)
-print('saved data', m)
-
-print('end')
+if __name__ == '__main__':
+    main()
+    print('end')

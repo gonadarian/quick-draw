@@ -58,56 +58,61 @@ def load_custom_data_sample(shape=1, show=False):
     return data
 
 
-if quick_draw_data:
-    data_set = load_quick_draw_data_set()
-    index = rand.randint(0, len(data_set))
-    print('using quick draw sample', index)
-    sample = data_set[index, :, :]
+def main():
 
-if custom_data:
-    sample = load_custom_data_sample(shape=custom_shape, show=False)
+    if quick_draw_data:
+        data_set = load_quick_draw_data_set()
+        index = rand.randint(0, len(data_set))
+        print('using quick draw sample', index)
+        sample = data_set[index, :, :]
 
-assert sample.shape == (28, 28)
+    if custom_data:
+        sample = load_custom_data_sample(shape=custom_shape, show=False)
 
-decoder_model = mdls.load_decoder_model()
-encoder_model = mdls.load_encoder_model()
-clustering_model = mdls.load_clustering_model()
+    assert sample.shape == (28, 28)
 
-embeddings = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
-cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
-clusters = utl.extract_clusters(cluster_matrix)
+    decoder_model = mdls.load_decoder_model()
+    encoder_model = mdls.load_encoder_model()
+    clustering_model = mdls.load_clustering_model()
 
-if analysis:
-    utl.show_elbow_curve(embeddings, True)
-    plt.imshow(cluster_matrix)
-    plt.show()
+    embeddings = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
+    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
+    clusters = utl.extract_clusters(cluster_matrix)
 
-images = []
-lines = []
-for cluster in clusters:
-    if len(cluster) > 2:
-        cluster_embeddings = embeddings[list(cluster)]
-        cluster_embedding = np.mean(cluster_embeddings, axis=0)
-        encoding, center = utl.extract_encoding_and_center(cluster_embedding)
-        assert encoding.shape == (14, )
-        assert center.shape == (2, )
-        image = utl.gen_image(decoder_model, encoding, center, show=False)
-        images.append(image)
-        lines.append(cluster_embedding)
+    if analysis:
+        utl.show_elbow_curve(embeddings, True)
+        plt.imshow(cluster_matrix)
+        plt.show()
 
-utl.show_clusters(sample, images)
+    images = []
+    lines = []
+    for cluster in clusters:
+        if len(cluster) > 2:
+            cluster_embeddings = embeddings[list(cluster)]
+            cluster_embedding = np.mean(cluster_embeddings, axis=0)
+            encoding, center = utl.extract_encoding_and_center(cluster_embedding)
+            assert encoding.shape == (14, )
+            assert center.shape == (2, )
+            image = utl.gen_image(decoder_model, encoding, center, show=False)
+            images.append(image)
+            lines.append(cluster_embedding)
 
-adjacency_matrix = utl.get_adjacency_matrix(images, show=True)
-adjacency_matrix = adjacency_matrix > -30
-print(adjacency_matrix)
+    utl.show_clusters(sample, images)
 
-edges = utl.get_graph_edges(adjacency_matrix)
-utl.draw_graph(edges)
+    adjacency_matrix = utl.get_adjacency_matrix(images, show=True)
+    adjacency_matrix = adjacency_matrix > -30
+    print(adjacency_matrix)
 
-if saving:
-    print(lines)
-    np.save('generator/data/graph_lines.npy', np.array(lines))
-    print(edges)
-    np.save('generator/data/graph_edges.npy', np.array(edges))
+    edges = utl.get_graph_edges(adjacency_matrix)
+    utl.draw_graph(edges)
 
-print('end')
+    if saving:
+        print(lines)
+        np.save('generator/data/graph_lines.npy', np.array(lines))
+        print(edges)
+        np.save('generator/data/graph_edges.npy', np.array(edges))
+
+
+if __name__ == '__main__':
+    main()
+    print('end')

@@ -27,57 +27,57 @@ def get_data():
     return X, Y
 
 
-if preload:
-    clustering_model = mdls.load_clustering_model()
+def main():
 
-elif train or predict:
-    clustering_model = mdls.create_clustering_model()
-    clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
+    if preload:
+        clustering_model = mdls.load_clustering_model()
 
+    elif train or predict:
+        clustering_model = mdls.create_clustering_model()
+        clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
 
-if train:
-    X, Y = get_data()
-    clustering_model.fit(
-        X, Y,
-        epochs=100,
-        batch_size=32,
-        shuffle=True,
-        validation_data=(X, Y),
-        callbacks=[
-            TensorBoard(log_dir='C:\Logs'),
-            ModelCheckpoint(
-                'models\pairs_encoded\model_dense_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
-                monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-        ]
-    )
+    if train:
+        X, Y = get_data()
+        clustering_model.fit(
+            X, Y,
+            epochs=100,
+            batch_size=32,
+            shuffle=True,
+            validation_data=(X, Y),
+            callbacks=[
+                TensorBoard(log_dir='C:\Logs'),
+                ModelCheckpoint(
+                    'models\pairs_encoded\model_dense_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
+                    monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+            ]
+        )
 
+    if predict:
+        X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
+        assert X_image.shape == (7234, 28, 28, 1)
 
-if predict:
-    X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
-    assert X_image.shape == (7234, 28, 28, 1)
+        m = X_image.shape[0]
+        indexes = np.random.randint(m, size=2)
+        samples = X_image[indexes]
 
-    m = X_image.shape[0]
-    indexes = np.random.randint(m, size=2)
-    samples = X_image[indexes]
+        encoder_model = mdls.load_encoder_model()
 
-    encoder_model = mdls.load_encoder_model()
+        Y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
+        Y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
+        Y_mix = np.concatenate((Y_image_1, Y_image_2), axis=0)
+        m_mix = len(Y_mix)
+        assert Y_mix.shape == (m_mix, 17)
 
-    Y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
-    Y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
-    Y_mix = np.concatenate((Y_image_1, Y_image_2), axis=0)
-    m_mix = len(Y_mix)
-    assert Y_mix.shape == (m_mix, 17)
+        cluster_matrix = utl.calculate_cluster_matrix(clustering_model, Y_mix)
 
-    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, Y_mix)
+    if cluster:
+        cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')  # TODO use datasets load method
 
-
-if cluster:
-    cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')  # TODO use datasets load method
-
-
-if predict or cluster:
-    clusters = utl.extract_clusters(cluster_matrix)
-    print(clusters)
+    if predict or cluster:
+        clusters = utl.extract_clusters(cluster_matrix)
+        print(clusters)
 
 
-print('end')
+if __name__ == '__main__':
+    main()
+    print('end')

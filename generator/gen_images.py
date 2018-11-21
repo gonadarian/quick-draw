@@ -19,14 +19,18 @@ def get_img_array(x, y, show=False):
     return image_array
 
 
-im_set = np.empty([img_size ** 2 // 2, img_size, img_size])
+def main():
 
-for x in range(img_size // 2):
-    for y in range(img_size):
-        im_array = get_img_array(x, y, False)
-        im_set[x * img_size + y, :, :] = im_array
+    im_set = np.empty([img_size ** 2 // 2, img_size, img_size])
 
-np.save('data\line_originals_v2_392x28x28.npy', im_set)
+    for x in range(img_size // 2):
+        for y in range(img_size):
+            im_array = get_img_array(x, y, False)
+            im_set[x * img_size + y, :, :] = im_array
+
+    np.save('data\line_originals_v2_392x28x28.npy', im_set)
 
 
-print('end')
+if __name__ == '__main__':
+    main()
+    print('end')

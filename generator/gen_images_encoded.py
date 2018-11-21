@@ -93,15 +93,20 @@ for i in range(m):
     print("done", i, "with", len(samples), "samples")
 
 
-X = np.concatenate(x_list)
-print('sample shape:', X.shape)
-assert X.shape[1:] == (28, 28, 1)
+def main():
 
-Y = np.concatenate(y_list)
-print('encoding shape:', Y.shape)
-assert Y.shape[1:] == (28, 28, 17)
+    X = np.concatenate(x_list)
+    print('sample shape:', X.shape)
+    assert X.shape[1:] == (28, 28, 1)
 
-np.save('data\line_samples_v2_{}x28x28x1.npy'.format(X.shape[0]), X)
-np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(Y.shape[0]), Y)
+    Y = np.concatenate(y_list)
+    print('encoding shape:', Y.shape)
+    assert Y.shape[1:] == (28, 28, 17)
 
-print('done all')
+    np.save('data\line_samples_v2_{}x28x28x1.npy'.format(X.shape[0]), X)
+    np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(Y.shape[0]), Y)
+
+
+if __name__ == '__main__':
+    main()
+    print('done all')
