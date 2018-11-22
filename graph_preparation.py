@@ -1,6 +1,6 @@
 import numpy as np
-import utilities as utl
 import datasets as ds
+import utilities as utl
 
 
 dim = 4
@@ -23,7 +23,7 @@ def main():
     regions = utl.get_regions(region_count=8, show=True)
 
     adjacency_matrix = utl.get_adjacency_matrix_from_edges(dim, edges)
-    region_matrix = utl.get_region_matrix(nodes, regions, show=False)
+    region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
 
     if show:
         print('adjacency_matrix:\n', adjacency_matrix)
