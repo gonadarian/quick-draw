@@ -3,14 +3,25 @@ import datasets as ds
 import utilities as utl
 import tensorflow as tf
 import keras.backend as K
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.layers import Input, Lambda, Dense
+from keras.callbacks import ModelCheckpoint
 
 
+preload = True
+training = False
 node_count = 4
 edge_count = 4
 region_count = 9
 encoding_dim = 14
+
+np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
+
+
+def absolute_loss(vector):
+    loss = K.mean(vector)
+    assert loss.shape == ()
+    return loss
 
 
 def lambda_graph2col_shape(input_shapes):
@@ -36,24 +47,31 @@ def lambda_graph2col(inputs):
 
     row_idx = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
     row_idx = tf.tile(row_idx, [1, node_count * region_count])  # (?, 36)
-    row_idx = tf.transpose(row_idx)  # (36, ?)
     row_idx = tf.reshape(row_idx, (-1, node_count, region_count))  # (?, 4, 9)
     assert row_idx.shape[1:] == (node_count, region_count)  # (?, 4, 9)
 
-    idx = tf.stack([row_idx, mapping], axis=-1)
+    idx = tf.stack([row_idx, mapping], axis=-1)  # (?, 4, 9, 2)
     assert idx.shape[1:] == (node_count, region_count, 2)
 
-    nan = tf.constant([-1, -1], dtype=tf.int32)
-    where = tf.not_equal(idx, nan)
+    empty = tf.constant(-1, dtype=tf.int32)
+    where = tf.not_equal(idx, empty)  # (?, 4, 9, 2)
     assert where.shape[1:] == (node_count, region_count, 2)
-    indices = tf.where(where)
-    assert indices.shape[2:] == (2, )
 
-    # nodes_columns = tf.gather_nd(nodes, idx)
-    nodes_columns = tf.scatter_nd(indices=indices, updates=nodes, shape=(batch_size, node_count, region_count, channel_size))
+    where = tf.reduce_all(where, axis=3)  # (?, 4, 9)
+    assert where.shape[1:] == (node_count, region_count)
+
+    indices = tf.where(where)  # (?, 3)
+    assert indices.shape[1:] == (3, )
+
+    node_indices = tf.gather_nd(idx, indices)  # (?, 2)
+    assert node_indices.shape[1:] == (2, )
+
+    updates = tf.gather_nd(nodes, node_indices)  # (?, 14)
+    assert updates.shape[1:] == (channel_size, )
+
+    nodes_columns = tf.scatter_nd(indices, updates, shape=(batch_size, node_count, region_count, channel_size))
     assert nodes_columns.shape[1:] == (node_count, region_count, channel_size)  # (?, 4, 9, 14)
     nodes_columns = tf.reshape(nodes_columns, (-1, node_count, region_count * channel_size))
-    print('nodes_columns.shape:', nodes_columns.shape[1:])
     assert nodes_columns.shape[1:] == (node_count, region_count * channel_size)  # (?, 4, 126)
 
     return nodes_columns
@@ -121,45 +139,46 @@ def lambda_repeat(node):
 
 
 def get_model_autoencoder():
-    input_nodes = Input(shape=(node_count, encoding_dim))
-    input_mapping = Input(shape=(node_count, region_count), dtype='int32')
+    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
+    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
 
     encoding = input_nodes
 
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(20, activation='relu')(encoding)
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(26, activation='relu')(encoding)
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(32, activation='relu')(encoding)
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(26, activation='relu')(encoding)
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(20, activation='relu')(encoding)
-    encoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([encoding, input_mapping])
-    encoding = Dense(14, activation='tanh')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
+    encoding = Dense(20, activation='relu', name='Dense_Enc_1')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
+    encoding = Dense(26, activation='relu', name='Dense_Enc_2')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
+    encoding = Dense(32, activation='relu', name='Dense_Enc_3')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
+    encoding = Dense(26, activation='relu', name='Dense_Enc_4')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
+    encoding = Dense(20, activation='relu', name='Dense_Enc_5')(encoding)
+    encoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
+    encoding = Dense(14, activation='tanh', name='Dense_Enc_6')(encoding)
 
-    # encoding = Lambda(lambda_mean, output_shape=lambda_mean_shape)(encoding)
-    encoding, variance = Lambda(lambda_moments, output_shape=lambda_moments_shape)(encoding)
+    encoding, variance = Lambda(lambda_moments, output_shape=lambda_moments_shape, name='Encoding_Moments')(encoding)
     decoding = encoding
-    decoding = Lambda(lambda_repeat, output_shape=lambda_repeat_shape)(decoding)
+    decoding = Lambda(lambda_repeat, lambda_repeat_shape, name='Encoding_Repeats')(decoding)
 
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(20, activation='relu')(decoding)
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(26, activation='relu')(decoding)
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(32, activation='relu')(decoding)
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(26, activation='relu')(decoding)
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(20, activation='relu')(decoding)
-    decoding = Lambda(lambda_graph2col, output_shape=lambda_graph2col_shape)([decoding, input_mapping])
-    decoding = Dense(14, activation='sigmoid')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
+    decoding = Dense(20, activation='relu', name='Dense_Dec_1')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
+    decoding = Dense(26, activation='relu', name='Dense_Dec_2')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
+    decoding = Dense(32, activation='relu', name='Dense_Dec_3')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
+    decoding = Dense(26, activation='relu', name='Dense_Dec_4')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
+    decoding = Dense(20, activation='relu', name='Dense_Dec_5')(decoding)
+    decoding = Lambda(lambda_graph2col, lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
+    decoding = Dense(14, activation='sigmoid', name='Dense_Dec_6')(decoding)
 
-    model = Model([input_nodes, input_mapping], [decoding, variance])
-    model.add_loss(variance)
-    model.compile(optimizer='adam', loss=['binary_crossentropy', None])
+    # model = Model(inputs=[input_nodes, input_graph], outputs=[decoding, variance])
+    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
+    model.add_loss(absolute_loss(variance))
+    # model.compile(optimizer='adam', loss=['binary_crossentropy', None])
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
     return model
 
@@ -345,8 +364,6 @@ def test():
 
 
 def main():
-    model = get_model_autoencoder()
-    model.summary()
 
     nodes = ds.load_graph_lines()
     edges = ds.load_graph_edges()
@@ -358,31 +375,54 @@ def main():
     nodes = nodes[:, 3:]  # use 14-dim instead of full 17-dim
     row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
 
-    mapping = np.zeros((node_count, region_count, encoding_dim))
-    mapping[row_indexes, column_indexes, :] = nodes[node_indexes]
+    # mapping = np.zeros((node_count, region_count, encoding_dim))
+    # mapping[row_indexes, column_indexes, :] = nodes[node_indexes]
 
     mapping = np.full((node_count, region_count), -1)
     mapping[row_indexes, column_indexes] = node_indexes
 
     nodes = nodes.reshape((1, node_count, encoding_dim))
-    mapping = mapping.reshape((1, node_count, region_count, encoding_dim))
+    mapping = mapping.reshape((1, node_count, region_count))
 
-    model.fit(
-        [nodes, mapping], [nodes, None],
-        epochs=1,
-        batch_size=1,
-        shuffle=True,
-        validation_data=([nodes, mapping], [nodes, None]),
-        # callbacks=[
-        #     TensorBoard(log_dir='C:\Logs'),
-        #     ModelCheckpoint(
-        #         'models\lines\model_autoencoder_v2.{epoch:02d}-{val_loss:.4f}.hdf5',
-        #         monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-        # ]
-    )
+    if preload:
+        custom_objects = {
+            'tf': tf,
+            'node_count': 4,
+            'edge_count': 4,
+            'region_count': 9,
+            'encoding_dim': 14
+        }
+
+        model = load_model('models\graphs\model_autoencoder_v1.02000-0.2204.hdf5', custom_objects=custom_objects)
+        model.compile(optimizer='adam', loss='binary_crossentropy')
+    else:
+        model = get_model_autoencoder()
+        model.summary()
+
+    if training:
+        model.fit(
+            x=[nodes, mapping],
+            y=nodes,
+            batch_size=1,
+            epochs=2000,
+            # shuffle=True,
+            # validation_split=0.1
+            validation_data=([nodes, mapping], nodes),
+            callbacks=[
+                # TensorBoard(log_dir='C:\Logs'),
+                ModelCheckpoint(
+                    'models\graphs\model_autoencoder_v1.{epoch:05d}-{val_loss:.4f}.hdf5',
+                    monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False,
+                    mode='auto', period=1000)
+            ]
+        )
+
+    decoded_nodes = model.predict(x=[nodes, mapping])
+    print('input:\n', nodes)
+    print('output:\n', decoded_nodes)
 
 
 if __name__ == '__main__':
-    test()
-    # main()
+    # test()
+    main()
     print('end')
