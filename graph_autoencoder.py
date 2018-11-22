@@ -43,7 +43,14 @@ def lambda_graph2col(inputs):
     idx = tf.stack([row_idx, mapping], axis=-1)
     assert idx.shape[1:] == (node_count, region_count, 2)
 
-    nodes_columns = tf.gather_nd(nodes, idx)
+    nan = tf.constant([-1, -1], dtype=tf.int32)
+    where = tf.not_equal(idx, nan)
+    assert where.shape[1:] == (node_count, region_count, 2)
+    indices = tf.where(where)
+    assert indices.shape[2:] == (2, )
+
+    # nodes_columns = tf.gather_nd(nodes, idx)
+    nodes_columns = tf.scatter_nd(indices=indices, updates=nodes, shape=(batch_size, node_count, region_count, channel_size))
     assert nodes_columns.shape[1:] == (node_count, region_count, channel_size)  # (?, 4, 9, 14)
     nodes_columns = tf.reshape(nodes_columns, (-1, node_count, region_count * channel_size))
     print('nodes_columns.shape:', nodes_columns.shape[1:])
@@ -157,7 +164,7 @@ def get_model_autoencoder():
     return model
 
 
-def get_nodes_columsn(nodes, vector_indexes):
+def get_nodes_columns(nodes, vector_indexes):
     nodes_columns = K.gather(nodes, vector_indexes)
     assert nodes_columns.shape == (node_count * (region_count + 1), encoding_dim)
     assert nodes_columns.shape == (4 * 9, 17)
@@ -166,6 +173,175 @@ def get_nodes_columsn(nodes, vector_indexes):
     assert nodes_columns.shape == (4, 9 * 17)
 
     return nodes_columns
+
+
+def test_debug():
+    batch_size = 3
+    channel_size = 14
+
+    with tf.Session() as sess:
+
+        row_idx = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
+        row_idx = tf.tile(row_idx, [1, node_count * region_count])  # (?, 36)
+        # row_idx = tf.transpose(row_idx)  # (36, ?)
+        row_idx = tf.reshape(row_idx, (-1, node_count, region_count))  # (?, 4, 9)
+        print(sess.run(row_idx))
+
+        assert row_idx.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+
+        # mapping = tf.constant([[
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]], [
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]], [
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]
+        # ]])
+        mapping = tf.constant([[
+            [0, -1, 1, -1, -1, 2, -1, -1, 3],
+            [0, -1, 1, -1, -1, 2, -1, -1, 3],
+            [0, -1, 1, -1, -1, 2, -1, -1, 3],
+            [0, -1, 1, -1, -1, 2, -1, -1, 3]], [
+            [0, -1, -1, -1, -1, 3, -1, -1, 1],
+            [0, -1, -1, -1, -1, 3, -1, -1, 1],
+            [0, -1, -1, -1, -1, 3, -1, -1, 1],
+            [0, -1, -1, -1, -1, 3, -1, -1, 1]], [
+            [0, -1, -1, 2, -1, 1, -1, 3, -1],
+            [0, -1, -1, 2, -1, 1, -1, 3, -1],
+            [0, -1, -1, 2, -1, 1, -1, 3, -1],
+            [0, -1, -1, 2, -1, 1, -1, 3, -1]]])
+
+        print(sess.run(mapping))
+        assert mapping.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+
+        idx = tf.stack([row_idx, mapping], axis=-1)
+        print(sess.run(idx))
+        assert idx.shape[1:] == (node_count, region_count, 2)
+
+        empty = tf.constant(-1, dtype=tf.int32)
+        where = tf.not_equal(idx, empty)
+        print(sess.run(where))
+        assert where.shape[1:] == (node_count, region_count, 2)
+
+        where = tf.reduce_all(where, axis=3)
+        print(sess.run(where))
+        assert where.shape[1:] == (node_count, region_count)
+
+        indices = tf.where(where)
+        print(sess.run(indices))
+        assert len(indices.shape) == 2
+
+        node_indices = tf.gather_nd(idx, indices)
+        print(sess.run(node_indices))
+
+        nodes = tf.constant([[
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]], [
+            [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+            [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+            [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+            [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]], [
+            [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+            [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+            [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+            [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233]]])
+
+        print(sess.run(nodes))
+        assert nodes.shape == (batch_size, node_count, channel_size)  # (?, 4, 14)
+
+        updates = tf.gather_nd(nodes, node_indices)
+        print(sess.run(updates))
+
+        nodes_columns = tf.scatter_nd(indices=indices, updates=updates,
+                                      shape=(batch_size, node_count, region_count, channel_size))
+        print(sess.run(nodes_columns))
+        assert nodes_columns.shape[1:] == (node_count, region_count, channel_size)  # (?, 4, 9, 14)
+
+        nodes_columns = tf.reshape(nodes_columns, (-1, node_count, region_count * channel_size))
+        print(sess.run(nodes_columns))
+        print(sess.run(nodes_columns)[0])
+        print(sess.run(nodes_columns)[1][0])
+        print('nodes_columns.shape:', nodes_columns.shape[1:])
+        assert nodes_columns.shape[1:] == (node_count, region_count * channel_size)  # (?, 4, 126)
+
+
+def test():
+    batch_size = 3
+    channel_size = 14
+
+    mapping = tf.constant([[
+        [0, -1, 1, -1, -1, 2, -1, -1, 3],
+        [0, -1, 1, -1, -1, 2, -1, -1, 3],
+        [0, -1, 1, -1, -1, 2, -1, -1, 3],
+        [0, -1, 1, -1, -1, 2, -1, -1, 3]], [
+        [0, -1, -1, -1, -1, 3, -1, -1, 1],
+        [0, -1, -1, -1, -1, 3, -1, -1, 1],
+        [0, -1, -1, -1, -1, 3, -1, -1, 1],
+        [0, -1, -1, -1, -1, 3, -1, -1, 1]], [
+        [0, -1, -1, 2, -1, 1, -1, 3, -1],
+        [0, -1, -1, 2, -1, 1, -1, 3, -1],
+        [0, -1, -1, 2, -1, 1, -1, 3, -1],
+        [0, -1, -1, 2, -1, 1, -1, 3, -1]]])
+
+    nodes = tf.constant([[
+        [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+        [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+        [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+        [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]], [
+        [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+        [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+        [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
+        [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]], [
+        [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+        [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+        [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233],
+        [220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233]]])
+
+    assert mapping.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+    assert nodes.shape == (batch_size, node_count, channel_size)  # (?, 4, 14)
+
+    with tf.Session() as sess:
+
+        row_idx = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
+        row_idx = tf.tile(row_idx, [1, node_count * region_count])  # (?, 36)
+        row_idx = tf.reshape(row_idx, (-1, node_count, region_count))  # (?, 4, 9)
+        assert row_idx.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+
+        idx = tf.stack([row_idx, mapping], axis=-1)
+        assert idx.shape[1:] == (node_count, region_count, 2)
+
+        empty = tf.constant(-1, dtype=tf.int32)
+        where = tf.not_equal(idx, empty)
+        assert where.shape[1:] == (node_count, region_count, 2)
+
+        where = tf.reduce_all(where, axis=3)
+        assert where.shape[1:] == (node_count, region_count)
+
+        indices = tf.where(where)
+        assert len(indices.shape) == 2
+
+        node_indices = tf.gather_nd(idx, indices)
+
+        updates = tf.gather_nd(nodes, node_indices)
+
+        nodes_columns = tf.scatter_nd(indices=indices, updates=updates,
+                                      shape=(batch_size, node_count, region_count, channel_size))
+        assert nodes_columns.shape[1:] == (node_count, region_count, channel_size)  # (?, 4, 9, 14)
+
+        nodes_columns = tf.reshape(nodes_columns, (-1, node_count, region_count * channel_size))
+        assert nodes_columns.shape[1:] == (node_count, region_count * channel_size)  # (?, 4, 126)
+
+        print(sess.run(nodes_columns)[0])
+        print(sess.run(nodes_columns)[1][0])
+        print('nodes_columns.shape:', nodes_columns.shape[1:])
 
 
 def main():
@@ -185,7 +361,7 @@ def main():
     mapping = np.zeros((node_count, region_count, encoding_dim))
     mapping[row_indexes, column_indexes, :] = nodes[node_indexes]
 
-    mapping = np.zeros((node_count, region_count))
+    mapping = np.full((node_count, region_count), -1)
     mapping[row_indexes, column_indexes] = node_indexes
 
     nodes = nodes.reshape((1, node_count, encoding_dim))
@@ -207,5 +383,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    test()
+    # main()
     print('end')
