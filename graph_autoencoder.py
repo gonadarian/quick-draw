@@ -3,7 +3,7 @@ import lambdas as l
 import datasets as ds
 import utilities as utl
 import tensorflow as tf
-import keras.backend as K
+import keras.backend as k
 from keras.models import Model, load_model
 from keras.layers import Input, Lambda, Dense
 from keras.callbacks import ModelCheckpoint
@@ -21,7 +21,7 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
 
 def absolute_loss(vector):
-    loss = K.mean(vector)
+    loss = k.mean(vector)
     assert loss.shape == ()
     return loss
 
@@ -62,17 +62,15 @@ def get_model_autoencoder():
     decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
     decoding = Dense(14, activation='tanh', name='Dense_Dec_6')(decoding)
 
-    # model = Model(inputs=[input_nodes, input_graph], outputs=[decoding, variance])
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
     model.add_loss(absolute_loss(variance))
-    # model.compile(optimizer='adam', loss=['binary_crossentropy', None])
     model.compile(optimizer='adam', loss='mean_squared_error')
 
     return model
 
 
 def get_nodes_columns(nodes, vector_indexes):
-    nodes_columns = K.gather(nodes, vector_indexes)
+    nodes_columns = k.gather(nodes, vector_indexes)
     assert nodes_columns.shape == (node_count * (region_count + 1), encoding_dim)
     assert nodes_columns.shape == (4 * 9, 17)
 
@@ -90,26 +88,11 @@ def test_debug():
 
         row_idx = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
         row_idx = tf.tile(row_idx, [1, node_count * region_count])  # (?, 36)
-        # row_idx = tf.transpose(row_idx)  # (36, ?)
         row_idx = tf.reshape(row_idx, (-1, node_count, region_count))  # (?, 4, 9)
         print(sess.run(row_idx))
 
         assert row_idx.shape[1:] == (node_count, region_count)  # (?, 4, 9)
 
-        # mapping = tf.constant([[
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]], [
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]], [
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18],
-        #     [10, 11, 12, 13, 14, 15, 16, 17, 18]
-        # ]])
         mapping = tf.constant([[
             [0, -1, 1, -1, -1, 2, -1, -1, 3],
             [0, -1, 1, -1, -1, 2, -1, -1, 3],
@@ -263,9 +246,6 @@ def main():
     nodes = nodes[:, 3:]  # use 14-dim instead of full 17-dim
     row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
 
-    # mapping = np.zeros((node_count, region_count, encoding_dim))
-    # mapping[row_indexes, column_indexes, :] = nodes[node_indexes]
-
     mapping = np.full((node_count, region_count), -1)
     mapping[row_indexes, column_indexes] = node_indexes
 
@@ -315,6 +295,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # test()
     main()
     print('end')
