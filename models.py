@@ -1,14 +1,21 @@
+import os
 from keras.layers import Input, Conv2D, UpSampling2D, Dense
 from keras.models import Model, load_model
 
 
+def load(filename):
+    path = os.path.join(os.path.dirname(__file__), filename)
+    model = load_model(path)
+    return model
+
+
 def load_autoencoder_model():
-    autoencoder_model = load_model('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
+    autoencoder_model = load('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
     return autoencoder_model
 
 
 def load_encoder_model():
-    encoder_model = load_model('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
+    encoder_model = load('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
     return encoder_model
 
 
@@ -19,7 +26,7 @@ def load_decoder_model():
 
 
 def load_clustering_model():
-    clustering_model = load_model('models\pairs_encoded\model_dense_v1-088-0.001555.hdf5')
+    clustering_model = load('models\pairs_encoded\model_dense_v1-088-0.001555.hdf5')
     return clustering_model
 
 

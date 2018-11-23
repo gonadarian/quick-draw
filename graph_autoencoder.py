@@ -9,7 +9,7 @@ from keras.layers import Input, Lambda, Dense
 from keras.callbacks import ModelCheckpoint
 
 
-preload = True
+preload = False
 training = not preload
 
 node_count = 4
@@ -236,21 +236,31 @@ def test():
 
 def main():
 
-    nodes = ds.load_graph_lines()
-    edges = ds.load_graph_edges()
+    sampling_full = True
+    sampling_single = not sampling_full
 
-    regions = utl.get_regions(region_count=8, show=True)
-    adjacency_matrix = utl.get_adjacency_matrix_from_edges(node_count, edges)
-    region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
+    if sampling_single:
+        nodes = ds.load_graph_lines()
+        edges = ds.load_graph_edges()
 
-    nodes = nodes[:, 3:]  # use 14-dim instead of full 17-dim
-    row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
+        regions = utl.get_regions(region_count=8, show=True)
 
-    mapping = np.full((node_count, region_count), -1)
-    mapping[row_indexes, column_indexes] = node_indexes
+        adjacency_matrix = utl.get_adjacency_matrix_from_edges(node_count, edges)
+        region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
 
-    nodes = nodes.reshape((1, node_count, encoding_dim))
-    mapping = mapping.reshape((1, node_count, region_count))
+        nodes = nodes[:, 3:]  # use 14-dim instead of full 17-dim
+        row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
+
+        mappings = np.full((node_count, region_count), -1)
+        mappings[row_indexes, column_indexes] = node_indexes
+
+        mappings = mappings.reshape((1, node_count, region_count))
+        nodes = nodes.reshape((1, node_count, encoding_dim))
+
+    if sampling_full:
+        # edges = ds.load_graph_edges_set()
+        nodes = ds.load_graph_lines_set()[:, :, 3:]
+        mappings = ds.load_graph_mapping_set()
 
     if preload:
         custom_objects = {
@@ -272,23 +282,23 @@ def main():
 
     if training:
         model.fit(
-            x=[nodes, mapping],
+            x=[nodes, mappings],
             y=nodes,
-            batch_size=1,
+            batch_size=32,
             epochs=10000,
             # shuffle=True,
             # validation_split=0.1
-            validation_data=([nodes, mapping], nodes),
+            validation_data=([nodes, mappings], nodes),
             callbacks=[
                 # TensorBoard(log_dir='C:\Logs'),
                 ModelCheckpoint(
-                    'models\graphs\model_autoencoder_v1.{epoch:05d}-{val_loss:.4f}.hdf5',
+                    'models\graphs\model_autoencoder_v1.{epoch:05d}-{val_loss:.6f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False,
                     mode='auto', period=100)
             ]
         )
 
-    decoded_nodes = model.predict(x=[nodes, mapping])
+    decoded_nodes = model.predict(x=[nodes, mappings])
     print('input:\n', nodes)
     print('output:\n', decoded_nodes)
     print('diff:\n', nodes - decoded_nodes)

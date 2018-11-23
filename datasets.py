@@ -16,4 +16,24 @@ def load_graph_lines():
 def load_graph_edges():
     edges = np.load('generator/data/graph_edges.npy')
     assert edges.shape[1:] == (2, )
-    return  edges
+    return edges
+
+
+def load_graph_lines_set():
+    nodes = np.load('generator/data/graph_lines_set_v1_146x4x17.npy')
+    assert nodes.shape[1:] == (4, 17)
+    return nodes
+
+
+def load_graph_edges_set():
+    edges = np.load('generator/data/graph_edges_set_v1_146x4x2.npy')
+    assert edges.shape[1:] == (4, 2)
+    return edges
+
+
+def load_graph_mapping_set():
+    mappings = np.load('generator/data/graph_mapping_set_v1_146x4x9.npy')
+    assert mappings.shape[1:] == (4, 9)
+    return mappings
+
+
