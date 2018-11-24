@@ -1,15 +1,13 @@
 import numpy as np
-import lambdas as l
+import models as mdls
 import datasets as ds
 import utilities as utl
 import tensorflow as tf
 import keras.backend as k
-from keras.models import Model, load_model
-from keras.layers import Input, Lambda, Dense
 from keras.callbacks import ModelCheckpoint
 
 
-preload = False
+preload = True
 training = not preload
 
 node_count = 4
@@ -18,55 +16,6 @@ region_count = 9
 encoding_dim = 14
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
-
-
-def absolute_loss(vector):
-    loss = k.mean(vector)
-    assert loss.shape == ()
-    return loss
-
-
-def get_model_autoencoder():
-    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
-    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
-
-    encoding = input_nodes
-
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
-    encoding = Dense(20, activation='relu', name='Dense_Enc_1')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
-    encoding = Dense(26, activation='relu', name='Dense_Enc_2')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
-    encoding = Dense(32, activation='relu', name='Dense_Enc_3')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
-    encoding = Dense(26, activation='relu', name='Dense_Enc_4')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
-    encoding = Dense(20, activation='relu', name='Dense_Enc_5')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
-    encoding = Dense(14, activation='tanh', name='Dense_Enc_6')(encoding)
-
-    encoding, variance = Lambda(l.lambda_moments, output_shape=l.lambda_moments_shape, name='Encoding_Moments')(encoding)
-    decoding = encoding
-    decoding = Lambda(l.lambda_repeat, l.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
-
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
-    decoding = Dense(20, activation='relu', name='Dense_Dec_1')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
-    decoding = Dense(26, activation='relu', name='Dense_Dec_2')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
-    decoding = Dense(32, activation='relu', name='Dense_Dec_3')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
-    decoding = Dense(26, activation='relu', name='Dense_Dec_4')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
-    decoding = Dense(20, activation='relu', name='Dense_Dec_5')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
-    decoding = Dense(14, activation='tanh', name='Dense_Dec_6')(decoding)
-
-    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(absolute_loss(variance))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    return model
 
 
 def get_nodes_columns(nodes, vector_indexes):
@@ -234,12 +183,13 @@ def test():
         print('nodes_columns.shape:', nodes_columns.shape[1:])
 
 
-def main():
+def load_data(full_sample = True):
 
-    sampling_full = True
-    sampling_single = not sampling_full
+    if full_sample:
+        nodes = ds.load_graph_lines_set()[:, :, 3:]
+        mappings = ds.load_graph_mapping_set()
 
-    if sampling_single:
+    else:
         nodes = ds.load_graph_lines()
         edges = ds.load_graph_edges()
 
@@ -257,37 +207,35 @@ def main():
         mappings = mappings.reshape((1, node_count, region_count))
         nodes = nodes.reshape((1, node_count, encoding_dim))
 
-    if sampling_full:
-        # edges = ds.load_graph_edges_set()
-        nodes = ds.load_graph_lines_set()[:, :, 3:]
-        mappings = ds.load_graph_mapping_set()
+    return nodes, mappings
+
+
+def main():
+
+    nodes, mappings = load_data()
 
     if preload:
         custom_objects = {
             'tf': tf,
             'node_count': 4,
-            'edge_count': 4,
             'region_count': 9,
             'encoding_dim': 14
         }
 
-        # model_file = 'models\graphs\model_autoencoder_v1.01900-0.0000-one_loss.hdf5'  # one loss
-        model_file = 'models\graphs\model_autoencoder_v1.02800-0.0000-two_losses.hdf5'  # two losses
-        model = load_model(model_file, custom_objects=custom_objects)
+        autoencoder_model = mdls.load_graph_autoencoder_model(custom_objects)
+        autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
-        model.compile(optimizer='adam', loss='binary_crossentropy')
     else:
-        model = get_model_autoencoder()
-        model.summary()
+        autoencoder_model = mdls.create_graph_autoencoder_model(node_count, encoding_dim, region_count)
+        autoencoder_model.summary()
 
     if training:
-        model.fit(
+        autoencoder_model.fit(
             x=[nodes, mappings],
             y=nodes,
             batch_size=32,
             epochs=10000,
-            # shuffle=True,
-            # validation_split=0.1
+            shuffle=True,
             validation_data=([nodes, mappings], nodes),
             callbacks=[
                 # TensorBoard(log_dir='C:\Logs'),
@@ -298,7 +246,8 @@ def main():
             ]
         )
 
-    decoded_nodes = model.predict(x=[nodes, mappings])
+    decoded_nodes = autoencoder_model.predict(x=[nodes, mappings])
+
     print('input:\n', nodes)
     print('output:\n', decoded_nodes)
     print('diff:\n', nodes - decoded_nodes)

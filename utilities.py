@@ -35,33 +35,33 @@ def get_embeddings(encoder, sample, threshold=1, show=False):
 
 
 def calculate_cluster_matrix(model, embeddings):
-    m = embeddings.shape[0]
-    assert embeddings.shape == (m, 17)
+    n = embeddings.shape[0]
+    assert embeddings.shape == (n, 17)
 
-    X = np.zeros((m, m, 34))
-    X[:, :, :17] = embeddings.reshape((m, 1, 17))
-    X[:, :, 17:] = embeddings.reshape((1, m, 17))
-    X = X.reshape((m ** 2, 34))
+    x = np.zeros((n, n, 34))
+    x[:, :, :17] = embeddings.reshape((n, 1, 17))
+    x[:, :, 17:] = embeddings.reshape((1, n, 17))
+    x = x.reshape((n ** 2, 34))
 
-    Y = model.predict(X)
-    assert Y.shape == (m ** 2, 1)
-    Y = Y.reshape((m, m))
+    y = model.predict(x)
+    assert y.shape == (n ** 2, 1)
+    y = y.reshape((n, n))
 
     # data improvement, matrix should be symmetric
-    Y += Y.T
-    Y /= 2
-    Y -= 0.4  # make it more strict, but this is ugly, maybe ln(Y) + 1?
+    y += y.T
+    y /= 2
+    y -= 0.4  # make it more strict, but this is ugly, maybe ln(Y) + 1?
 
-    return Y
+    return y
 
 
 def extract_clusters(cluster_matrix, debug=False):
-    m = cluster_matrix.shape[0]
-    assert cluster_matrix.shape == (m, m)
+    n = cluster_matrix.shape[0]
+    assert cluster_matrix.shape == (n, n)
     cluster_matrix = np.rint(cluster_matrix).astype(int)
 
     indexes = []
-    for row in range(m):
+    for row in range(n):
         row_indexes = np.argwhere(cluster_matrix[row, :] == 1)[:, 0]
         indexes.append(row_indexes)
         if debug:
@@ -102,7 +102,6 @@ def show_elbow_curve(encodings, show=False):
 
 def gen_image(decoder, encoding, center, show=False):
     assert encoding.shape == (14, )
-    import matplotlib.pyplot as plt
 
     # this is a 14-number encoding for one of the lines in the test set
     encoding = np.reshape(encoding, (1, 1, 1, 14))
@@ -218,19 +217,19 @@ def draw_graph(edges):
     nodes = set([n1 for n1, n2 in edges] + [n2 for n1, n2 in edges])
 
     # create networkx graph
-    G = nx.Graph()
+    g = nx.Graph()
 
     # add nodes
     for node in nodes:
-        G.add_node(node)
+        g.add_node(node)
 
     # add edges
     for edge in edges:
-        G.add_edge(edge[0], edge[1])
+        g.add_edge(edge[0], edge[1])
 
     # draw graph
-    pos = nx.shell_layout(G)
-    nx.draw(G, pos)
+    pos = nx.shell_layout(g)
+    nx.draw(g, pos)
 
     # show graph
     plt.show()

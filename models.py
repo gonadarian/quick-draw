@@ -1,33 +1,40 @@
 import os
-from keras.layers import Input, Conv2D, UpSampling2D, Dense
+import lambdas as l
+import keras.backend as k
+from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
 from keras.models import Model, load_model
 
 
-def load(filename):
-    path = os.path.join(os.path.dirname(__file__), filename)
-    model = load_model(path)
+def load(filename, custom_objects=None):
+    path = os.path.join(os.path.dirname(__file__), 'models/', filename)
+    model = load_model(path, custom_objects)
     return model
 
 
 def load_autoencoder_model():
-    autoencoder_model = load('models\lines\lines_autoencoder_v2-385-0.0047.hdf5')
+    autoencoder_model = load('lines\lines_autoencoder_v2-385-0.0047.hdf5')
     return autoencoder_model
 
 
 def load_encoder_model():
-    encoder_model = load('models\lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
+    encoder_model = load('lines_encoded\lines_mixed_encoded_v2-091-0.000072.hdf5')
     return encoder_model
 
 
 def load_decoder_model():
-    autoencoder_model = load_autoencoder_model();
+    autoencoder_model = load_autoencoder_model()
     decoder_model = gen_decoder_model(autoencoder_model)
     return decoder_model
 
 
 def load_clustering_model():
-    clustering_model = load('models\pairs_encoded\model_dense_v1-088-0.001555.hdf5')
+    clustering_model = load('pairs_encoded\model_dense_v1-088-0.001555.hdf5')
     return clustering_model
+
+
+def load_graph_autoencoder_model(custom_objects):
+    autoencoder_model = load('graphs\model_autoencoder_v1.09500-0.000011.hdf5', custom_objects)
+    return autoencoder_model
 
 
 # representation (14, 1, 1) i.e. 14-dimensional
@@ -77,7 +84,7 @@ def gen_decoder_model(autoencoder, show=False):
 
     # relink all the layers again to include new input one in the chain
     y = x
-    layers = [l for l in autoencoder.layers]
+    layers = [layer for layer in autoencoder.layers]
     for i in range(len(layers)):
         y = layers[i](y)
 
@@ -121,5 +128,54 @@ def create_clustering_model():
 
     output_data = x
     model = Model(inputs=input_data, outputs=output_data)
+
+    return model
+
+
+def absolute_loss(vector):
+    loss = k.mean(vector)
+    assert loss.shape == ()
+    return loss
+
+
+def create_graph_autoencoder_model(node_count, encoding_dim, region_count):
+    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
+    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
+
+    encoding = input_nodes
+
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
+    encoding = Dense(20, activation='relu', name='Dense_Enc_1')(encoding)
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
+    encoding = Dense(26, activation='relu', name='Dense_Enc_2')(encoding)
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
+    encoding = Dense(32, activation='relu', name='Dense_Enc_3')(encoding)
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
+    encoding = Dense(26, activation='relu', name='Dense_Enc_4')(encoding)
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
+    encoding = Dense(20, activation='relu', name='Dense_Enc_5')(encoding)
+    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
+    encoding = Dense(14, activation='tanh', name='Dense_Enc_6')(encoding)
+
+    encoding, variance = Lambda(l.lambda_moments, l.lambda_moments_shape, name='Encoding_Moments')(encoding)
+    decoding = encoding
+    decoding = Lambda(l.lambda_repeat, l.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
+
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
+    decoding = Dense(20, activation='relu', name='Dense_Dec_1')(decoding)
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
+    decoding = Dense(26, activation='relu', name='Dense_Dec_2')(decoding)
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
+    decoding = Dense(32, activation='relu', name='Dense_Dec_3')(decoding)
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
+    decoding = Dense(26, activation='relu', name='Dense_Dec_4')(decoding)
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
+    decoding = Dense(20, activation='relu', name='Dense_Dec_5')(decoding)
+    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
+    decoding = Dense(14, activation='tanh', name='Dense_Dec_6')(decoding)
+
+    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
+    model.add_loss(absolute_loss(variance))
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
     return model
