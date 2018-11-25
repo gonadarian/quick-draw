@@ -1,5 +1,6 @@
 import os
 import lambdas as l
+import tensorflow as tf
 import keras.backend as k
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
 from keras.models import Model, load_model
@@ -32,7 +33,12 @@ def load_clustering_model():
     return clustering_model
 
 
-def load_graph_autoencoder_model(custom_objects):
+def load_graph_autoencoder_model(node_count, region_count):
+    custom_objects = {
+        'tf': tf,
+        'node_count': node_count,
+        'region_count': region_count,
+    }
     autoencoder_model = load('graphs\model_autoencoder_v1.09500-0.000011.hdf5', custom_objects)
     return autoencoder_model
 

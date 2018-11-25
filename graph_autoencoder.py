@@ -215,14 +215,7 @@ def main():
     nodes, mappings = load_data()
 
     if preload:
-        custom_objects = {
-            'tf': tf,
-            'node_count': 4,
-            'region_count': 9,
-            'encoding_dim': 14
-        }
-
-        autoencoder_model = mdls.load_graph_autoencoder_model(custom_objects)
+        autoencoder_model = mdls.load_graph_autoencoder_model(node_count=4, region_count=9)
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
     else:
