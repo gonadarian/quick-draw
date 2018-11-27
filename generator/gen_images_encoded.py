@@ -9,8 +9,8 @@ rand.seed(1)
 
 def get_shift_matrix():
     d = np.zeros((28, 28, 2))
-    row = np.arange(0,28).reshape((1, 28, 1))
-    col = np.arange(0,28).reshape((28, 1, 1))
+    row = np.arange(0, 28).reshape((1, 28, 1))
+    col = np.arange(0, 28).reshape((28, 1, 1))
     d[:, :, [0]] = row
     d[:, :, [1]] = col
     d -= 13.5
@@ -30,8 +30,8 @@ def generated_shifted_samples(sample, density=0.3):
     cols = 28 - 2 * empty_cols
 
     max_image_count = 0 if empty_rows == 0 and empty_cols == 0 else\
-                      2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
-                      4 * empty_rows * empty_cols
+        2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
+        4 * empty_rows * empty_cols
 
     image_count = m.ceil(max_image_count * density)
     samples = [(sample, 0, 0)]
@@ -95,16 +95,16 @@ for i in range(m):
 
 def main():
 
-    X = np.concatenate(x_list)
-    print('sample shape:', X.shape)
-    assert X.shape[1:] == (28, 28, 1)
+    x = np.concatenate(x_list)
+    print('sample shape:', x.shape)
+    assert x.shape[1:] == (28, 28, 1)
 
-    Y = np.concatenate(y_list)
-    print('encoding shape:', Y.shape)
-    assert Y.shape[1:] == (28, 28, 17)
+    y = np.concatenate(y_list)
+    print('encoding shape:', y.shape)
+    assert y.shape[1:] == (28, 28, 17)
 
-    np.save('data\line_samples_v2_{}x28x28x1.npy'.format(X.shape[0]), X)
-    np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(Y.shape[0]), Y)
+    np.save('data\line_samples_v2_{}x28x28x1.npy'.format(x.shape[0]), x)
+    np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(y.shape[0]), y)
 
 
 if __name__ == '__main__':

@@ -89,7 +89,7 @@ def main():
         for idx in range(m):
             sample = [x[[idx], ...]]
             activation = autoencoder_model.predict(sample)
-            print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), activation[0, 0, 0, :]))))
+            print('\t'.join(list(map(lambda it: '{0:.3f}'.format(it), activation[0, 0, 0, :]))))
 
     # generate images for encoded values of choice
     if analyze_2:

@@ -7,7 +7,6 @@ from PIL import Image, ImageDraw
 
 
 quick_draw_data = False
-custom_data = not quick_draw_data
 custom_shape = 1
 analysis = False
 saving = True
@@ -66,7 +65,7 @@ def main():
         print('using quick draw sample', index)
         sample = data_set[index, :, :]
 
-    if custom_data:
+    else:
         sample = load_custom_data_sample(shape=custom_shape, show=False)
 
     assert sample.shape == (28, 28)

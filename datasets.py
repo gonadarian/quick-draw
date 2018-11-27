@@ -48,5 +48,3 @@ def load_graph_mapping_set():
     mappings = load('graph_mapping_set_v1_146x4x9.npy')
     assert mappings.shape[1:] == (4, 9)
     return mappings
-
-

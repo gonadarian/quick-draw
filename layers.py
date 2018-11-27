@@ -127,11 +127,9 @@ class GraphConv(Layer):
             'bias_regularizer': regularizers.serialize(self.bias_regularizer),
             'activity_regularizer': regularizers.serialize(self.activity_regularizer),
             'kernel_constraint': constraints.serialize(self.kernel_constraint),
-            'bias_constraint': constraints.serialize(self.bias_constraint)
+            'bias_constraint': constraints.serialize(self.bias_constraint),
         }
 
         base_config = super(GraphConv, self).get_config()
 
         return {**base_config, **config}
-
-

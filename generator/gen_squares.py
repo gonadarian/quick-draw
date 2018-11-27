@@ -1,7 +1,6 @@
 import numpy as np
 import models as mdls
 import utilities as utl
-# import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 
@@ -23,9 +22,9 @@ def get_img_array(x, y, show=False):
     # 0-based 2,4  4,25  25,23  23,2
     # x,y  y,w-x-1  w-x-1,w-y-1  w-y-1,x
     draw.line((x, y, y, w-1-x), fill=255)
-    draw.line((y, w-1-x, w-x-1,w-y-1), fill=255)
-    draw.line((w-x-1,w-y-1, w-y-1,x), fill=255)
-    draw.line((w-y-1,x, x, y), fill=255)
+    draw.line((y, w-1-x, w-x-1, w-y-1), fill=255)
+    draw.line((w-x-1, w-y-1, w-y-1, x), fill=255)
+    draw.line((w-y-1, x, x, y), fill=255)
 
     image_array = np.asarray(image)
 

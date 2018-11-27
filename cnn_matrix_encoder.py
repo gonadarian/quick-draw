@@ -41,7 +41,7 @@ def load_data():
 
 def main():
 
-    X, Y, m = load_data()
+    x, y, m = load_data()
 
     if preload:
 
@@ -55,11 +55,11 @@ def main():
     if train:
 
         encoder_model.fit(
-            X, Y,
+            x, y,
             epochs=60,
             batch_size=32,
             shuffle=True,
-            validation_data=(X, Y),
+            validation_data=(x, y),
             callbacks=[
                 TensorBoard(log_dir='C:\Logs'),
                 ModelCheckpoint(
@@ -77,16 +77,16 @@ def main():
 
         if predict_single:
 
-            idx = rand.randint(0, X.shape[0])
+            idx = rand.randint(0, x.shape[0])
             print('random index:', idx)
-            sample = X[idx, :, :, 0]
+            sample = x[idx, :, :, 0]
             embeddings = utl.get_embeddings(encoder_model, sample, True)
 
             if analysis:
                 offsets = embeddings[:, 1:3]
                 print('offsets:')
-                print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), offsets[:, 0]))))
-                print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), offsets[:, 1]))))
+                print('\t'.join(list(map(lambda it: '{0:.3f}'.format(it), offsets[:, 0]))))
+                print('\t'.join(list(map(lambda it: '{0:.3f}'.format(it), offsets[:, 1]))))
                 dist = get_distances(embeddings)
                 print('dist:\n', dist)
                 utl.show_elbow_curve(embeddings)
@@ -101,10 +101,10 @@ def main():
             fig_cols = n
 
             plt.figure(figsize=(fig_rows * fig_cols, 4))
-            indexes = rand.sample(range(1, X.shape[0]), n)
+            indexes = rand.sample(range(1, x.shape[0]), n)
 
             for i in range(n):
-                sample = X[indexes[i], :, :, 0]
+                sample = x[indexes[i], :, :, 0]
                 embeddings = utl.get_embeddings(encoder_model, sample, False)
                 images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, False)
 

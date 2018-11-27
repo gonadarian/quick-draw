@@ -15,19 +15,20 @@ np.random.seed(1)
 
 
 def get_data():
-    X = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')  # TODO use datasets load method
-    assert X.shape == (7234, 10, 2, 17)
+    x = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')  # TODO use datasets load method
+    assert x.shape == (7234, 10, 2, 17)
 
-    X = X.reshape((72340, 34))
-    m = X.shape[0]
+    x = x.reshape((72340, 34))
+    m = x.shape[0]
 
-    Y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10).reshape((m, 1))
-    assert Y.shape == (72340, 1)
+    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10).reshape((m, 1))
+    assert y.shape == (72340, 1)
 
-    return X, Y
+    return x, y
 
 
 def main():
+    clustering_model = None
 
     if preload:
         clustering_model = mdls.load_clustering_model()
@@ -37,13 +38,13 @@ def main():
         clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
 
     if train:
-        X, Y = get_data()
+        x, y = get_data()
         clustering_model.fit(
-            X, Y,
+            x, y,
             epochs=100,
             batch_size=32,
             shuffle=True,
-            validation_data=(X, Y),
+            validation_data=(x, y),
             callbacks=[
                 TensorBoard(log_dir='C:\Logs'),
                 ModelCheckpoint(
@@ -52,23 +53,25 @@ def main():
             ]
         )
 
-    if predict:
-        X_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
-        assert X_image.shape == (7234, 28, 28, 1)
+    cluster_matrix = None
 
-        m = X_image.shape[0]
+    if predict:
+        x_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
+        assert x_image.shape == (7234, 28, 28, 1)
+
+        m = x_image.shape[0]
         indexes = np.random.randint(m, size=2)
-        samples = X_image[indexes]
+        samples = x_image[indexes]
 
         encoder_model = mdls.load_encoder_model()
 
-        Y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
-        Y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
-        Y_mix = np.concatenate((Y_image_1, Y_image_2), axis=0)
-        m_mix = len(Y_mix)
-        assert Y_mix.shape == (m_mix, 17)
+        y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
+        y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
+        y_mix = np.concatenate((y_image_1, y_image_2), axis=0)
+        m_mix = len(y_mix)
+        assert y_mix.shape == (m_mix, 17)
 
-        cluster_matrix = utl.calculate_cluster_matrix(clustering_model, Y_mix)
+        cluster_matrix = utl.calculate_cluster_matrix(clustering_model, y_mix)
 
     if cluster:
         cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')  # TODO use datasets load method

@@ -1,5 +1,5 @@
 import os
-import lambdas as l
+import lambdas as ls
 import tensorflow as tf
 import keras.backend as k
 from keras.models import Model, load_model
@@ -169,34 +169,34 @@ def _create_graph_autoencoder_model_v1(node_count, encoding_dim, region_count):
 
     encoding = input_nodes
 
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
     encoding = Dense(20, activation='relu', name='Dense_Enc_1')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
     encoding = Dense(26, activation='relu', name='Dense_Enc_2')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
     encoding = Dense(32, activation='relu', name='Dense_Enc_3')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
     encoding = Dense(26, activation='relu', name='Dense_Enc_4')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
     encoding = Dense(20, activation='relu', name='Dense_Enc_5')(encoding)
-    encoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
+    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
     encoding = Dense(14, activation='tanh', name='Dense_Enc_6')(encoding)
 
-    encoding, variance = Lambda(l.lambda_moments, l.lambda_moments_shape, name='Encoding_Moments')(encoding)
+    encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
     decoding = encoding
-    decoding = Lambda(l.lambda_repeat, l.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
+    decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
 
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
     decoding = Dense(20, activation='relu', name='Dense_Dec_1')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
     decoding = Dense(26, activation='relu', name='Dense_Dec_2')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
     decoding = Dense(32, activation='relu', name='Dense_Dec_3')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
     decoding = Dense(26, activation='relu', name='Dense_Dec_4')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
     decoding = Dense(20, activation='relu', name='Dense_Dec_5')(decoding)
-    decoding = Lambda(l.lambda_graph2col, l.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
+    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
     decoding = Dense(14, activation='tanh', name='Dense_Dec_6')(decoding)
 
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
@@ -219,9 +219,9 @@ def _create_graph_autoencoder_model_v2(node_count, encoding_dim, region_count):
     encoding = GraphConv(20, name='GraphConv_Enc_5')([encoding, input_graph])
     encoding = GraphConv(14, activation='tanh', name='GraphConv_Enc_6')([encoding, input_graph])
 
-    encoding, variance = Lambda(l.lambda_moments, l.lambda_moments_shape, name='Encoding_Moments')(encoding)
+    encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
     decoding = encoding
-    decoding = Lambda(l.lambda_repeat, l.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
+    decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
 
     decoding = GraphConv(20, name='GraphConv_Dec_1')([decoding, input_graph])
     decoding = GraphConv(26, name='GraphConv_Dec_2')([decoding, input_graph])

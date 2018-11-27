@@ -183,7 +183,7 @@ def test():
         print('nodes_columns.shape:', nodes_columns.shape[1:])
 
 
-def load_data(full_sample = True):
+def load_data(full_sample=True):
 
     if full_sample:
         nodes = ds.load_graph_lines_set()[:, :, 3:]
