@@ -4,7 +4,7 @@ import tensorflow as tf
 import keras.backend as k
 from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
-from layers import GraphConv
+from layers import GraphConv, GraphConvV2, Graph2Col
 
 
 def load(filename, custom_objects=None):
@@ -44,9 +44,11 @@ def load_graph_autoencoder_model(node_count, region_count, version=1):
     versions = {
         1: 'graphs/model_autoencoder_v1.09500-0.000011.hdf5',
         2: 'graphs/model_autoencoder_v2.08800-0.000009.hdf5',
+        3: 'graphs/model_autoencoder_v3.09700-0.000008.hdf5',
     }
 
     autoencoder_model = load(versions[version], custom_objects)
+    autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['mae', 'acc'])
 
     return autoencoder_model
 
@@ -156,6 +158,7 @@ def create_graph_autoencoder_model(node_count, encoding_dim, region_count, versi
     versions = {
         1: _create_graph_autoencoder_model_v1,
         2: _create_graph_autoencoder_model_v2,
+        3: _create_graph_autoencoder_model_v3,
     }
     create_model = versions[version]
     model = create_model(node_count, encoding_dim, region_count)
@@ -233,5 +236,42 @@ def _create_graph_autoencoder_model_v2(node_count, encoding_dim, region_count):
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
     model.add_loss(absolute_loss(variance))
     model.compile(optimizer='adam', loss='mean_squared_error')
+
+    return model
+
+
+def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
+    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
+    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
+
+    with k.name_scope('Prepare'):
+        nodes_indices, column_indices = Graph2Col(name='Graph2Col')(input_graph)
+
+    encoding = input_nodes
+
+    with tf.name_scope('Encoder'):
+        encoding = GraphConvV2(20, name='GraphConv_Enc_1')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(26, name='GraphConv_Enc_2')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(32, name='GraphConv_Enc_3')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(26, name='GraphConv_Enc_4')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(20, name='GraphConv_Enc_5')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(14, activation='tanh', name='GraphConv_Enc_6')([encoding, nodes_indices, column_indices])
+
+    with tf.name_scope('Embedding'):
+        encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
+        decoding = encoding
+        decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
+
+    with tf.name_scope('Decoder'):
+        decoding = GraphConvV2(20, name='GraphConv_Dec_1')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(26, name='GraphConv_Dec_2')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(32, name='GraphConv_Dec_3')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(26, name='GraphConv_Dec_4')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(20, name='GraphConv_Dec_5')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(14, activation='tanh', name='GraphConv_Dec_6')([decoding, nodes_indices, column_indices])
+
+    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
+    model.add_loss(absolute_loss(variance))
+    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae', 'acc'])
 
     return model
