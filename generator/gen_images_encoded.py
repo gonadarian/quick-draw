@@ -1,4 +1,4 @@
-import math as m
+import math
 import numpy as np
 import random as rand
 import models as mdls
@@ -33,7 +33,7 @@ def generated_shifted_samples(sample, density=0.3):
         2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
         4 * empty_rows * empty_cols
 
-    image_count = m.ceil(max_image_count * density)
+    image_count = math.ceil(max_image_count * density)
     samples = [(sample, 0, 0)]
 
     for i in range(image_count):
@@ -48,52 +48,50 @@ def generated_shifted_samples(sample, density=0.3):
     return samples
 
 
-d = get_shift_matrix()
-assert d.shape == (1, 28, 28, 2)
-
-x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
-x = x.astype('float32') / 255.
-m = x.shape[0]
-x = np.reshape(x, (m, 28, 28, 1))
-print("x: ", x.shape)
-
-y = np.zeros((m, 28, 28, 16))
-print("y: ", y.shape)
-
-autoencoder_model = mdls.load_autoencoder_model()
-autoencoder_model.outputs = [autoencoder_model.layers[8].output]
-
-assert x.shape == (392, 28, 28, 1)
-x_list = []
-y_list = []
-
-for i in range(m):
-    x_sample = [x[[i], ...]]
-    encoding = autoencoder_model.predict(x_sample)
-    assert encoding.shape == (1, 1, 1, 14)
-    encoding = encoding.reshape((1, 1, 14))
-
-    x_sample = x_sample[0][0, :, :, 0]
-    assert x_sample.shape == (28, 28)
-
-    samples = generated_shifted_samples(x_sample, density=0.1)
-    for sample, shift_row, shift_col in samples:
-        assert sample.shape == (28, 28)
-        sample = sample.reshape((28, 28, 1))
-        shift = np.zeros((1, 1, 1, 2))
-        shift[0, 0, 0, :] = [shift_col/27, shift_row/27]  # 28 points, but 27 ranges!!!
-        shift = d + shift
-        y = np.zeros((28, 28, 17))
-        y[:, :, [0]] = sample
-        y[:, :, 1:3] = sample * shift
-        y[:, :, 3:17] = sample * encoding
-        y_list.append(y.reshape((1, 28, 28, 17)))
-        x_list.append(sample.reshape((1, 28, 28, 1)))
-
-    print("done", i, "with", len(samples), "samples")
-
-
 def main():
+    d = get_shift_matrix()
+    assert d.shape == (1, 28, 28, 2)
+
+    x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
+    x = x.astype('float32') / 255.
+    m = x.shape[0]
+    x = np.reshape(x, (m, 28, 28, 1))
+    print("x: ", x.shape)
+
+    y = np.zeros((m, 28, 28, 16))
+    print("y: ", y.shape)
+
+    autoencoder_model = mdls.load_autoencoder_model()
+    autoencoder_model.outputs = [autoencoder_model.layers[8].output]
+
+    assert x.shape == (392, 28, 28, 1)
+    x_list = []
+    y_list = []
+
+    for i in range(m):
+        x_sample = [x[[i], ...]]
+        encoding = autoencoder_model.predict(x_sample)
+        assert encoding.shape == (1, 1, 1, 14)
+        encoding = encoding.reshape((1, 1, 14))
+
+        x_sample = x_sample[0][0, :, :, 0]
+        assert x_sample.shape == (28, 28)
+
+        samples = generated_shifted_samples(x_sample, density=0.1)
+        for sample, shift_row, shift_col in samples:
+            assert sample.shape == (28, 28)
+            sample = sample.reshape((28, 28, 1))
+            shift = np.zeros((1, 1, 1, 2))
+            shift[0, 0, 0, :] = [shift_col / 27, shift_row / 27]  # 28 points, but 27 ranges!!!
+            shift = d + shift
+            y = np.zeros((28, 28, 17))
+            y[:, :, [0]] = sample
+            y[:, :, 1:3] = sample * shift
+            y[:, :, 3:17] = sample * encoding
+            y_list.append(y.reshape((1, 28, 28, 17)))
+            x_list.append(sample.reshape((1, 28, 28, 1)))
+
+        print("done", i, "with", len(samples), "samples")
 
     x = np.concatenate(x_list)
     print('sample shape:', x.shape)
