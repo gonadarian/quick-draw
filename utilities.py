@@ -304,10 +304,10 @@ def get_matrix_transformation(adjacency_matrix, region_matrix):
     row_indexes = edge_indexes[:, 0]
     column_indexes = region_matrix[edge_indexes[:, 0], edge_indexes[:, 1]].astype(dtype=np.uint8)
 
-    edge_count = np.count_nonzero(adjacency_matrix) // 2
-    assert len(row_indexes) == edge_count * 2
-    assert len(column_indexes) == edge_count * 2
-    assert len(node_indexes) == edge_count * 2
+    edge_count = np.count_nonzero(adjacency_matrix)
+    assert len(row_indexes) == edge_count
+    assert len(column_indexes) == edge_count
+    assert len(node_indexes) == edge_count
 
     return row_indexes, column_indexes, node_indexes
 

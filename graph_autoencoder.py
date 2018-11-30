@@ -13,7 +13,7 @@ training = not preload
 node_count = 4
 edge_count = 4
 region_count = 9
-encoding_dim = 14
+encoding_dim = 17
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
@@ -186,7 +186,7 @@ def test():
 def load_data(full_sample=True):
 
     if full_sample:
-        nodes = ds.load_graph_lines_set()[:, :, 3:]
+        nodes = ds.load_graph_lines_set()
         mappings = ds.load_graph_mapping_set()
 
     else:
@@ -198,7 +198,7 @@ def load_data(full_sample=True):
         adjacency_matrix = utl.get_adjacency_matrix_from_edges(node_count, edges)
         region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
 
-        nodes = nodes[:, 3:]  # use 14-dim instead of full 17-dim
+        nodes = nodes
         row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
 
         mappings = np.full((node_count, region_count), -1)
@@ -215,7 +215,7 @@ def main():
     nodes, mappings = load_data()
 
     if preload:
-        autoencoder_model = mdls.load_graph_autoencoder_model(node_count=4, region_count=9, version=2)
+        autoencoder_model = mdls.load_graph_autoencoder_model(node_count, region_count, version=4)
 
     else:
         autoencoder_model = mdls.create_graph_autoencoder_model(node_count, encoding_dim, region_count, version=3)
@@ -230,9 +230,9 @@ def main():
             shuffle=True,
             validation_data=([nodes, mappings], nodes),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs\Graph Autoencoder v3'),
+                TensorBoard(log_dir='C:\Logs\Graph Autoencoder v4.b32'),
                 ModelCheckpoint(
-                    'models\graphs\model_autoencoder_v3.{epoch:05d}-{val_loss:.6f}.hdf5',
+                    'models\graphs\model_autoencoder_v4.b32.{epoch:05d}-{val_loss:.6f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False,
                     mode='auto', period=100)
             ]

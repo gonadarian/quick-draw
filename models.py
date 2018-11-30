@@ -39,12 +39,15 @@ def load_graph_autoencoder_model(node_count, region_count, version=1):
         'tf': tf,
         'node_count': node_count,
         'region_count': region_count,
+        'Graph2Col': Graph2Col,
         'GraphConv': GraphConv,
+        'GraphConvV2': GraphConvV2,
     }
     versions = {
         1: 'graphs/model_autoencoder_v1.09500-0.000011.hdf5',
         2: 'graphs/model_autoencoder_v2.08800-0.000009.hdf5',
         3: 'graphs/model_autoencoder_v3.09700-0.000008.hdf5',
+        4: 'graphs/model_autoencoder_v4.b32.09900-0.000008.hdf5',
     }
 
     autoencoder_model = load(versions[version], custom_objects)
@@ -250,12 +253,12 @@ def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
     encoding = input_nodes
 
     with tf.name_scope('Encoder'):
-        encoding = GraphConvV2(20, name='GraphConv_Enc_1')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(26, name='GraphConv_Enc_2')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(32, name='GraphConv_Enc_3')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(26, name='GraphConv_Enc_4')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(20, name='GraphConv_Enc_5')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(14, activation='tanh', name='GraphConv_Enc_6')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim+6, name='GraphConv_Enc_1')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim+12, name='GraphConv_Enc_2')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim+18, name='GraphConv_Enc_3')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim+12, name='GraphConv_Enc_4')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim+6, name='GraphConv_Enc_5')([encoding, nodes_indices, column_indices])
+        encoding = GraphConvV2(encoding_dim, activation='tanh', name='GraphConv_Enc_6')([encoding, nodes_indices, column_indices])
 
     with tf.name_scope('Embedding'):
         encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
@@ -263,12 +266,12 @@ def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
         decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
 
     with tf.name_scope('Decoder'):
-        decoding = GraphConvV2(20, name='GraphConv_Dec_1')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(26, name='GraphConv_Dec_2')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(32, name='GraphConv_Dec_3')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(26, name='GraphConv_Dec_4')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(20, name='GraphConv_Dec_5')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(14, activation='tanh', name='GraphConv_Dec_6')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim+6, name='GraphConv_Dec_1')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim+12, name='GraphConv_Dec_2')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim+18, name='GraphConv_Dec_3')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim+12, name='GraphConv_Dec_4')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim+6, name='GraphConv_Dec_5')([decoding, nodes_indices, column_indices])
+        decoding = GraphConvV2(encoding_dim, activation='tanh', name='GraphConv_Dec_6')([decoding, nodes_indices, column_indices])
 
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
     model.add_loss(absolute_loss(variance))
