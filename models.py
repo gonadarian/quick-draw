@@ -48,6 +48,7 @@ def load_graph_autoencoder_model(node_count, region_count, version=1):
         2: 'graphs/model_autoencoder_v2.08800-0.000009.hdf5',
         3: 'graphs/model_autoencoder_v3.09700-0.000008.hdf5',
         4: 'graphs/model_autoencoder_v4.b32.09900-0.000008.hdf5',
+        5: 'graphs/model_autoencoder_v5.b32.09900-0.000007.hdf5',
     }
 
     autoencoder_model = load(versions[version], custom_objects)
@@ -157,7 +158,7 @@ def absolute_loss(vector):
     return loss
 
 
-def create_graph_autoencoder_model(node_count, encoding_dim, region_count, version=1):
+def create_graph_autoencoder_model_legacy(node_count, encoding_dim, region_count, version=1):
     versions = {
         1: _create_graph_autoencoder_model_v1,
         2: _create_graph_autoencoder_model_v2,
@@ -272,6 +273,56 @@ def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
         decoding = GraphConvV2(encoding_dim+12, name='GraphConv_Dec_4')([decoding, nodes_indices, column_indices])
         decoding = GraphConvV2(encoding_dim+6, name='GraphConv_Dec_5')([decoding, nodes_indices, column_indices])
         decoding = GraphConvV2(encoding_dim, activation='tanh', name='GraphConv_Dec_6')([decoding, nodes_indices, column_indices])
+
+    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
+    model.add_loss(absolute_loss(variance))
+    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae', 'acc'])
+
+    return model
+
+
+def create_graph_autoencoder_model(units_list, node_count, region_count):
+    assert len(units_list) >= 2
+
+    input_units = units_list[0]
+    embedding_units = units_list[-1]
+
+    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
+    input_nodes = Input(shape=(node_count, input_units), name='Input_Nodes')
+
+    with k.name_scope('Prepare'):
+        nodes_indices, column_indices = Graph2Col(name='Graph2Col')(input_graph)
+
+    encoding = input_nodes
+
+    with tf.name_scope('Encoder'):
+        for layer, units in enumerate(units_list[1:-2:1]):
+            encoding = GraphConvV2(units, name='GraphConv_Enc_{}'.format(layer + 1))([
+                encoding,
+                nodes_indices,
+                column_indices])
+
+        encoding = GraphConvV2(embedding_units, activation='tanh', name='GraphConv_Enc_{}'.format(layer + 2))([
+            encoding,
+            nodes_indices,
+            column_indices])
+
+    with tf.name_scope('Embedding'):
+        encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
+        decoding = encoding
+        decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
+
+    with tf.name_scope('Decoder'):
+        for layer, units in enumerate(units_list[-2:1:-1]):
+            decoding = GraphConvV2(units, name='GraphConv_Dec_{}'.format(layer + 1))([
+                decoding,
+                nodes_indices,
+                column_indices])
+
+        decoding = GraphConvV2(input_units, activation='tanh', name='GraphConv_Dec_{}'.format(layer + 2))([
+            decoding,
+            nodes_indices,
+            column_indices])
 
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
     model.add_loss(absolute_loss(variance))

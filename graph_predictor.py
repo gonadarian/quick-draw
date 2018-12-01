@@ -18,6 +18,7 @@ def load_quick_draw_data_set():
     data = np.load('generator/data/quick_draw-square.npy')
     data = data.reshape((-1, 28, 28))
     data = data.astype('float32') / 255.
+
     return data
 
 

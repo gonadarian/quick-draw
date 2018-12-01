@@ -7,7 +7,7 @@ import keras.backend as k
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
-preload = False
+preload = True
 training = not preload
 
 node_count = 4
@@ -218,7 +218,10 @@ def main():
         autoencoder_model = mdls.load_graph_autoencoder_model(node_count, region_count, version=4)
 
     else:
-        autoencoder_model = mdls.create_graph_autoencoder_model(node_count, encoding_dim, region_count, version=3)
+        autoencoder_model = mdls.create_graph_autoencoder_model(
+            units_list=[17, 20, 26, 32, 26, 20, 14],
+            node_count=node_count,
+            region_count=region_count)
         autoencoder_model.summary()
 
     if training:
@@ -230,9 +233,9 @@ def main():
             shuffle=True,
             validation_data=([nodes, mappings], nodes),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs\Graph Autoencoder v4.b32'),
+                TensorBoard(log_dir='C:\Logs\Graph Autoencoder v5.b32'),
                 ModelCheckpoint(
-                    'models\graphs\model_autoencoder_v4.b32.{epoch:05d}-{val_loss:.6f}.hdf5',
+                    'models\graphs\model_autoencoder_v5.b32.{epoch:05d}-{val_loss:.6f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False,
                     mode='auto', period=100)
             ]
