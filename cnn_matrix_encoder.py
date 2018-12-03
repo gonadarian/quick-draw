@@ -44,11 +44,9 @@ def main():
     x, y, m = load_data()
 
     if preload:
-
         encoder_model = mdls.load_encoder_model()
 
     else:
-
         encoder_model = mdls.create_encoder_model()
         encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 

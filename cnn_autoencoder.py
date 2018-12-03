@@ -1,3 +1,4 @@
+import time as t
 import numpy as np
 import models as mdls
 import random as rand
@@ -6,51 +7,52 @@ import matplotlib.pyplot as plt
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
-preload = False
+preload = True
 train = not preload
 predict = True
-analyze_1 = True
-analyze_2 = True
+analyze_1 = False
+analyze_2 = False
 
 
 def main():
 
     if preload:
-        autoencoder_model = mdls.load_autoencoder_model()
+        # autoencoder_model = mdls.load_autoencoder_model()
+        autoencoder_model = mdls.load_autoencoder_model_27x27()
 
     else:
-        autoencoder_model = mdls.get_model_autoencoder()
+        # autoencoder_model = mdls.get_model_autoencoder()
+        autoencoder_model = mdls.get_model_autoencoder_27x27()
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
-    print(autoencoder_model.summary())
+    autoencoder_model.summary()
 
-    x = ds.load_images_line_centered()
-    x = x.astype('float32') / 255.
-    x = np.reshape(x, (len(x), 28, 28, 1))
+    x = ds.load_images_line_27x27_centered()
     m = x.shape[0]
 
     if train:
 
         autoencoder_model.fit(
             x, x,
-            epochs=400,
+            epochs=1000,
             batch_size=64,
             shuffle=True,
             validation_data=(x, x),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs'),
+                TensorBoard(log_dir='C:\Logs\Conv Autoencoder v4.b64.{}'.format(int(t.time()))),
                 ModelCheckpoint(
-                    'models\lines\model_autoencoder_v2.{epoch:02d}-{val_loss:.4f}.hdf5',
+                    'models\lines\model_autoencoder_v3.{epoch:04d}-{val_loss:.5f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True,
-                    save_weights_only=False, mode='auto', period=1)
+                    save_weights_only=False, mode='auto', period=10)
             ]
         )
 
     if predict:
 
         n = 10
+        dim = 27
         decoded_images = autoencoder_model.predict(x)
-        indexes = rand.sample(range(1, decoded_images.shape[0]), n)
+        indexes = rand.sample(range(1, m), n)
 
         plt.figure(figsize=(30, 4))
         for i in range(n):
@@ -58,7 +60,7 @@ def main():
 
             # display original
             ax = plt.subplot(3, n, i + 1)
-            img_original = x[img_idx].reshape(28, 28)
+            img_original = x[img_idx].reshape(dim, dim)
             plt.imshow(img_original)
             plt.gray()
             ax.get_xaxis().set_visible(False)
@@ -66,7 +68,7 @@ def main():
 
             # display reconstruction
             ax = plt.subplot(3, n, i + 1 + n)
-            image_reconstruct = decoded_images[img_idx].reshape(28, 28)
+            image_reconstruct = decoded_images[img_idx].reshape(dim, dim)
             plt.imshow(image_reconstruct)
             plt.gray()
             ax.get_xaxis().set_visible(False)
@@ -104,7 +106,7 @@ def main():
         # show 10 images for different encoding variations
         for idx in range(10):
             img = decoder_model.predict(sample)
-            img = img.reshape(28, 28)
+            img = img.reshape(dim, dim)
 
             plt.gray()
             plt.imshow(img)

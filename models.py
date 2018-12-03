@@ -18,6 +18,11 @@ def load_autoencoder_model():
     return autoencoder_model
 
 
+def load_autoencoder_model_27x27():
+    autoencoder_model = load('lines/model_autoencoder_v3.1000-0.00212.hdf5')
+    return autoencoder_model
+
+
 def load_encoder_model():
     encoder_model = load('lines_encoded/lines_mixed_encoded_v2-091-0.000072.hdf5')
     return encoder_model
@@ -91,6 +96,41 @@ def get_model_autoencoder():
     decoded = x
 
     model = Model(input_img, decoded)
+    return model
+
+
+def get_model_autoencoder_27x27():
+    input_image = Input(shape=(27, 27, 1))
+
+    encoding = input_image
+
+    encoding = Conv2D(4, (3, 3), activation='relu', padding='valid', name='enc_conv1')(encoding)   # 25
+    encoding = Conv2D(8, (5, 5), activation='relu', padding='valid', name='enc_conv2')(encoding)   # 21
+    encoding = Conv2D(12, (7, 7), activation='relu', padding='valid', name='enc_conv3')(encoding)  # 15
+    encoding = Conv2D(16, (7, 7), activation='relu', padding='valid', name='enc_conv4')(encoding)  # 9
+    encoding = Conv2D(20, (5, 5), activation='relu', padding='valid', name='enc_conv5')(encoding)  # 5
+    encoding = Conv2D(24, (3, 3), activation='relu', padding='valid', name='enc_conv6')(encoding)  # 3
+    encoding = Conv2D(28, (3, 3), activation='relu', padding='valid', name='enc_conv7')(encoding)  # 1
+    encoding = Conv2D(14, (1, 1), activation='tanh', padding='valid', name='enc_conv8')(encoding)  # 1
+
+    decoding = encoding
+
+    decoding = Conv2D(28, (1, 1), activation='relu', padding='same', name='dec_conv1')(decoding)  # 1
+    decoding = UpSampling2D((3, 3), name='dec_up1')(decoding)
+    decoding = Conv2D(24, (3, 3), activation='relu', padding='same', name='dec_conv2')(decoding)  # 1
+    decoding = UpSampling2D((3, 3), name='dec_up2')(decoding)
+    decoding = Conv2D(20, (3, 3), activation='relu', padding='same', name='dec_conv3')(decoding)  # 1
+    decoding = Conv2D(16, (5, 5), activation='relu', padding='same', name='dec_conv4')(decoding)  # 1
+    decoding = UpSampling2D((3, 3), name='dec_up3')(decoding)
+    decoding = Conv2D(12, (7, 7), activation='relu', padding='same', name='dec_conv5')(decoding)  # 1
+    decoding = Conv2D(8, (7, 7), activation='relu', padding='same', name='dec_conv6')(decoding)  # 1
+    decoding = Conv2D(4, (5, 5), activation='relu', padding='same', name='dec_conv7')(decoding)  # 1
+    decoding = Conv2D(1, (3, 3), activation='sigmoid', padding='same', name='dec_conv8')(decoding)  # 1
+
+    output_image = decoding
+
+    model = Model(input_image, output_image)
+
     return model
 
 

@@ -11,6 +11,18 @@ def load(filename):
 def load_images_line_centered():
     x = load('line_originals_v2_392x28x28.npy')
     assert x.shape == (392, 28, 28)
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (len(x), 28, 28, 1))
+    assert x.shape == (392, 28, 28, 1)
+    return x
+
+
+def load_images_line_27x27_centered():
+    x = load('lines/lines_27x27_centered_v1_351x27x27.npy')
+    assert x.shape == (351, 27, 27)
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (len(x), 27, 27, 1))
+    assert x.shape == (351, 27, 27, 1)
     return x
 
 
