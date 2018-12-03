@@ -2,32 +2,37 @@ import math
 import numpy as np
 import random as rand
 import models as mdls
+import datasets as ds
 
+
+dim = 27
+channels = 14
+channels_full = 17
 
 rand.seed(1)
 
 
 def get_shift_matrix():
-    d = np.zeros((28, 28, 2))
-    row = np.arange(0, 28).reshape((1, 28, 1))
-    col = np.arange(0, 28).reshape((28, 1, 1))
+    d = np.zeros((dim, dim, 2))
+    row = np.arange(0, dim).reshape((1, dim, 1))
+    col = np.arange(0, dim).reshape((dim, 1, 1))
     d[:, :, [0]] = row
     d[:, :, [1]] = col
-    d -= 13.5
-    d /= -27
-    d = d.reshape((1, 28, 28, 2))
+    d -= (dim - 1) / 2
+    d /= -(dim - 1)
+    d = d.reshape((1, dim, dim, 2))
     return d
 
 
 def generated_shifted_samples(sample, density=0.3):
-    assert sample.shape == (28, 28)
+    assert sample.shape == (dim, dim)
 
     [empty_rows, empty_cols] = np.amin(np.where(sample == 1), axis=1)
-    sub_image = sample[empty_rows:28 - empty_rows, empty_cols:28 - empty_cols]
+    sub_image = sample[empty_rows:dim - empty_rows, empty_cols:dim - empty_cols]
 
     # lines are not centered after all.... so +1/-1 on couple of places :(
-    rows = 28 - 2 * empty_rows
-    cols = 28 - 2 * empty_cols
+    rows = dim - 2 * empty_rows
+    cols = dim - 2 * empty_cols
 
     max_image_count = 0 if empty_rows == 0 and empty_cols == 0 else\
         2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
@@ -41,7 +46,7 @@ def generated_shifted_samples(sample, density=0.3):
         shift_col = 0 if empty_cols == 0 else rand.randint(-empty_cols, empty_cols)
         from_row = empty_rows + shift_row
         from_col = empty_cols + shift_col
-        shifted_sample = np.zeros((28, 28))
+        shifted_sample = np.zeros((dim, dim))
         shifted_sample[from_row:from_row+rows, from_col:from_col+cols] = sub_image
         samples.append((shifted_sample, shift_row, shift_col))
 
@@ -50,59 +55,59 @@ def generated_shifted_samples(sample, density=0.3):
 
 def main():
     d = get_shift_matrix()
-    assert d.shape == (1, 28, 28, 2)
+    assert d.shape == (1, dim, dim, 2)
 
-    x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
-    x = x.astype('float32') / 255.
+    x = ds.load_images_line_27x27_centered()
     m = x.shape[0]
-    x = np.reshape(x, (m, 28, 28, 1))
     print("x: ", x.shape)
 
-    y = np.zeros((m, 28, 28, 16))
+    y = np.zeros((m, dim, dim, channels_full))
     print("y: ", y.shape)
 
-    autoencoder_model = mdls.load_autoencoder_model()
+    autoencoder_model = mdls.load_autoencoder_model_27x27()
     autoencoder_model.outputs = [autoencoder_model.layers[8].output]
 
-    assert x.shape == (392, 28, 28, 1)
     x_list = []
     y_list = []
 
     for i in range(m):
         x_sample = [x[[i], ...]]
         encoding = autoencoder_model.predict(x_sample)
-        assert encoding.shape == (1, 1, 1, 14)
-        encoding = encoding.reshape((1, 1, 14))
+        assert encoding.shape == (1, 1, 1, channels)
+        encoding = encoding.reshape((1, 1, channels))
 
         x_sample = x_sample[0][0, :, :, 0]
-        assert x_sample.shape == (28, 28)
+        assert x_sample.shape == (dim, dim)
 
         samples = generated_shifted_samples(x_sample, density=0.1)
         for sample, shift_row, shift_col in samples:
-            assert sample.shape == (28, 28)
-            sample = sample.reshape((28, 28, 1))
+            assert sample.shape == (dim, dim)
+            sample = sample.reshape((dim, dim, 1))
+
             shift = np.zeros((1, 1, 1, 2))
-            shift[0, 0, 0, :] = [shift_col / 27, shift_row / 27]  # 28 points, but 27 ranges!!!
+            shift[0, 0, 0, :] = [shift_col / (dim - 1), shift_row / (dim - 1)]  # 'dim' points, but 'dim-1' ranges
             shift = d + shift
-            y = np.zeros((28, 28, 17))
+
+            y = np.zeros((dim, dim, channels_full))
             y[:, :, [0]] = sample
             y[:, :, 1:3] = sample * shift
-            y[:, :, 3:17] = sample * encoding
-            y_list.append(y.reshape((1, 28, 28, 17)))
-            x_list.append(sample.reshape((1, 28, 28, 1)))
+            y[:, :, 3:channels_full] = sample * encoding
+
+            y_list.append(y.reshape((1, dim, dim, channels_full)))
+            x_list.append(sample.reshape((1, dim, dim, 1)))
 
         print("done", i, "with", len(samples), "samples")
 
     x = np.concatenate(x_list)
     print('sample shape:', x.shape)
-    assert x.shape[1:] == (28, 28, 1)
+    assert x.shape[1:] == (dim, dim, 1)
 
     y = np.concatenate(y_list)
     print('encoding shape:', y.shape)
-    assert y.shape[1:] == (28, 28, 17)
+    assert y.shape[1:] == (dim, dim, channels_full)
 
-    np.save('data\line_samples_v2_{}x28x28x1.npy'.format(x.shape[0]), x)
-    np.save('data\line_encodings_v2_{}x28x28x16.npy'.format(y.shape[0]), y)
+    np.save('data\lines\line_27x27_samples_v1_{}x{}x{}x1.npy'.format(x.shape[0], dim, dim), x)
+    np.save('data\lines\line_27x27_encodings_v1_{}x{}x{}x{}.npy'.format(y.shape[0], dim, dim, channels_full), y)
 
 
 if __name__ == '__main__':
