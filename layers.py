@@ -118,23 +118,6 @@ class GraphConv(Layer):
 
         return tuple(output_shape)
 
-    def get_config(self):
-        config = {
-            'units': self.units,
-            'activation': activations.serialize(self.activation),
-            'kernel_initializer': initializers.serialize(self.kernel_initializer),
-            'bias_initializer': initializers.serialize(self.bias_initializer),
-            'kernel_regularizer': regularizers.serialize(self.kernel_regularizer),
-            'bias_regularizer': regularizers.serialize(self.bias_regularizer),
-            'activity_regularizer': regularizers.serialize(self.activity_regularizer),
-            'kernel_constraint': constraints.serialize(self.kernel_constraint),
-            'bias_constraint': constraints.serialize(self.bias_constraint),
-        }
-
-        base_config = super(GraphConv, self).get_config()
-
-        return {**base_config, **config}
-
 
 class Graph2Col(Layer):
 
@@ -188,13 +171,6 @@ class Graph2Col(Layer):
         column_indices_shape = (None, 3)
 
         return [nodes_indices_shape, column_indices_shape]
-
-    def get_config(self):
-        config = {}
-
-        base_config = super(Graph2Col, self).get_config()
-
-        return {**base_config, **config}
 
 
 class GraphConvV2(Layer):
@@ -296,21 +272,3 @@ class GraphConvV2(Layer):
         output_shape[-1] = self.units
 
         return tuple(output_shape)
-
-    def get_config(self):
-        config = {
-            'units': self.units,
-            'regions_size': self.regions,
-            'activation': activations.serialize(self.activation),
-            'kernel_initializer': initializers.serialize(self.kernel_initializer),
-            'bias_initializer': initializers.serialize(self.bias_initializer),
-            'kernel_regularizer': regularizers.serialize(self.kernel_regularizer),
-            'bias_regularizer': regularizers.serialize(self.bias_regularizer),
-            'activity_regularizer': regularizers.serialize(self.activity_regularizer),
-            'kernel_constraint': constraints.serialize(self.kernel_constraint),
-            'bias_constraint': constraints.serialize(self.bias_constraint),
-        }
-
-        base_config = super(GraphConvV2, self).get_config()
-
-        return {**base_config, **config}
