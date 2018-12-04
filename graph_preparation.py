@@ -3,26 +3,30 @@ import datasets as ds
 import utilities as utl
 
 
-dim = 4
+vertices = 4
+channels_full = 17
+region_count = 9
+
 real_data = True
 show = False
 
 
 def main():
 
-    nodes = ds.load_graph_lines() if real_data else np.arange(dim * 17).reshape((dim, 17))
-    assert nodes.shape == (dim, 17)
+    nodes = ds.load_graph_lines() if real_data \
+        else np.arange(vertices * channels_full).reshape((vertices, channels_full))
+    assert nodes.shape == (vertices, channels_full)
 
     edges = ds.load_graph_edges()
-    assert edges.shape == (dim, 2)
+    assert edges.shape == (vertices, 2)
 
     if show:
         print('nodes:\n', nodes)
         print('edges:\n', edges)
 
-    regions = utl.get_regions(region_count=8, show=True)
+    regions = utl.get_regions(region_count)
 
-    adjacency_matrix = utl.get_adjacency_matrix_from_edges(dim, edges)
+    adjacency_matrix = utl.get_adjacency_matrix_from_edges(vertices, edges)
     region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
 
     if show:
@@ -30,13 +34,17 @@ def main():
         print('region_matrix:\n', region_matrix)
 
     row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
-    matrix_1 = np.zeros((dim, 9, 17))  # max 1-neighbourhood size is 8, plus 1 for center node
-    matrix_1[row_indexes, column_indexes, :] = nodes[node_indexes]  # fill in the values
+    # max 1-neighbourhood size is 8, plus 1 for center node
+    matrix_1 = np.zeros((vertices, region_count, channels_full))
+    # fill in the values
+    matrix_1[row_indexes, column_indexes, :] = nodes[node_indexes]
 
     vector_indexes, node_indexes = utl.get_vector_transformation(adjacency_matrix, region_matrix)
-    vector = np.zeros((dim * 9, 17))  # max 1-neighbourhood size is 8, plus 1 for center node
-    vector[vector_indexes, :] = nodes[node_indexes]  # fill in the values
-    matrix_2 = vector.reshape((dim, 9, 17))
+    # max 1-neighbourhood size is 8, plus 1 for center node
+    vector = np.zeros((vertices * region_count, channels_full))
+    # fill in the values
+    vector[vector_indexes, :] = nodes[node_indexes]
+    matrix_2 = vector.reshape((vertices, region_count, channels_full))
 
     if show:
         print('matrix_1:\n', matrix_1)

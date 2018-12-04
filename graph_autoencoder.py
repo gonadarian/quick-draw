@@ -13,25 +13,23 @@ training = not preload
 node_count = 4
 edge_count = 4
 region_count = 9
-encoding_dim = 17
+channels_full = 17
+channels = 14
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
 
 def get_nodes_columns(nodes, vector_indexes):
     nodes_columns = k.gather(nodes, vector_indexes)
-    assert nodes_columns.shape == (node_count * (region_count + 1), encoding_dim)
-    assert nodes_columns.shape == (4 * 9, 17)
-
-    nodes_columns = nodes_columns.reshape((node_count, (region_count + 1) * encoding_dim))
-    assert nodes_columns.shape == (4, 9 * 17)
+    assert nodes_columns.shape == (node_count * region_count, channels_full)
+    nodes_columns = nodes_columns.reshape((node_count, region_count * channels_full))
 
     return nodes_columns
 
 
 def test_debug():
     batch_size = 3
-    channel_size = 14
+    channel_size = channels  # TODO replace with channels
 
     with tf.Session() as sess:
 
@@ -114,7 +112,7 @@ def test_debug():
 
 def test():
     batch_size = 3
-    channel_size = 14
+    channel_size = channels  # TODO replace with channels
 
     mapping = tf.constant([[
         [0, -1, 1, -1, -1, 2, -1, -1, 3],
@@ -193,7 +191,7 @@ def load_data(full_sample=True):
         nodes = ds.load_graph_lines()
         edges = ds.load_graph_edges()
 
-        regions = utl.get_regions(region_count=8, show=True)
+        regions = utl.get_regions(region_count)
 
         adjacency_matrix = utl.get_adjacency_matrix_from_edges(node_count, edges)
         region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
@@ -205,7 +203,7 @@ def load_data(full_sample=True):
         mappings[row_indexes, column_indexes] = node_indexes
 
         mappings = mappings.reshape((1, node_count, region_count))
-        nodes = nodes.reshape((1, node_count, encoding_dim))
+        nodes = nodes.reshape((1, node_count, channels_full))
 
     return nodes, mappings
 

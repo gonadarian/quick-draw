@@ -48,9 +48,10 @@ def calculate_cluster_matrix(model, embeddings):
     y = y.reshape((n, n))
 
     # data improvement, matrix should be symmetric
-    y += y.T
-    y /= 2
-    y -= 0.4  # make it more strict, but this is ugly, maybe ln(Y) + 1?
+    y = (y + y.T) / 2
+
+    # makes it more strict, but this is ugly, maybe ln(Y) + 1?
+    y -= 0.4
 
     return y
 
@@ -189,13 +190,13 @@ def get_adjacency_matrix(images, dim=28, show=False):
     return adjacency_matrix
 
 
-def get_adjacency_matrix_from_edges(dim, edges, self_connected=True):
-    adjacency_matrix = np.zeros((dim, dim))
+def get_adjacency_matrix_from_edges(vertices, edges, self_connected=True):
+    adjacency_matrix = np.zeros((vertices, vertices))
     adjacency_matrix[edges[:, 0], edges[:, 1]] = 1
     adjacency_matrix += adjacency_matrix.T
 
     if self_connected:
-        diag_indexes = range(dim)
+        diag_indexes = range(vertices)
         adjacency_matrix[diag_indexes, diag_indexes] = 1
 
     return adjacency_matrix
@@ -235,20 +236,20 @@ def draw_graph(edges):
     plt.show()
 
 
-def get_regions(region_count=8, show=False):
-    region_range = 2 * m.pi / region_count
+def get_regions(region_count=9, show=False):
+    region_range = 2 * m.pi / (region_count - 1)
 
-    region_borders = np.zeros((region_count+2,))
+    region_borders = np.zeros((region_count + 1,))
     region_borders[0] = -m.pi
-    for i in range(region_count):
+    for i in range(region_count - 1):
         border = -m.pi + region_range / 2 + i * region_range
         region_borders[i + 1] = border
-    region_borders[region_count + 1] = +m.pi
+    region_borders[region_count] = +m.pi
 
-    regions = np.ones((region_count+1, 3))
+    regions = np.ones((region_count, 3))
     regions[:, 0] = region_borders[:-1]
     regions[:, 1] = region_borders[1:]
-    regions[:-1, 2] = range(1, region_count + 1)
+    regions[:-1, 2] = range(1, region_count)
 
     if show:
         print('borders:', region_borders)

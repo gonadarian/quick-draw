@@ -8,7 +8,9 @@ w = 28
 node_count = 4
 edge_count = 4
 region_count = 9
-encoding_dim = 14
+channels = 14
+channels_full = 17
+adjacency_threshold = -30
 
 saving = True
 testing = False
@@ -60,14 +62,14 @@ def get_graph(decoder_model, encoder_model, clustering_model, sample, show=False
             cluster_embeddings = embeddings[list(cluster)]
             cluster_embedding = np.mean(cluster_embeddings, axis=0)
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
-            assert encoding.shape == (14, )
+            assert encoding.shape == (channels, )
             assert center.shape == (2, )
             image = utl.gen_image(decoder_model, encoding, center, show=False)
             images.append(image)
             lines.append(cluster_embedding)
 
     adjacency_matrix = utl.get_adjacency_matrix(images, show=False)
-    adjacency_matrix = adjacency_matrix > -30
+    adjacency_matrix = adjacency_matrix > adjacency_threshold
     edges = utl.get_graph_edges(adjacency_matrix)
 
     if show:
@@ -109,19 +111,19 @@ def main():
             nodes_set.extend(nodes)
             edges_set.extend(edges)
 
-    nodes_set = np.array(nodes_set).reshape((-1, 4, 17))
+    nodes_set = np.array(nodes_set).reshape((-1, 4, channels_full))
     edges_set = np.array(edges_set).reshape((-1, 4, 2))
 
     m = len(nodes_set)
-    assert nodes_set.shape == (m, 4, 17)
+    assert nodes_set.shape == (m, 4, channels_full)
     assert edges_set.shape == (m, 4, 2)
 
     if saving:
-        np.save('data/graph_lines_set_v1_{}x4x17.npy'.format(m), nodes_set)
+        np.save('data/graph_lines_set_v1_{}x4x{}.npy'.format(m, channels_full), nodes_set)
         np.save('data/graph_edges_set_v1_{}x4x2.npy'.format(m), edges_set)
 
     mapping_set = []
-    regions = utl.get_regions(region_count=8, show=True)
+    regions = utl.get_regions(region_count)
 
     for index in range(m):
         nodes = nodes_set[index]
@@ -137,11 +139,11 @@ def main():
 
         mapping_set.extend(mapping)
 
-    mapping_set = np.array(mapping_set).reshape((-1, 4, 9))
-    assert mapping_set.shape == (m, 4, 9)
+    mapping_set = np.array(mapping_set).reshape((-1, 4, region_count))
+    assert mapping_set.shape == (m, 4, region_count)
 
     if saving:
-        np.save('data/graph_mapping_set_v1_{}x4x9.npy'.format(m), mapping_set)
+        np.save('data/graph_mapping_set_v1_{}x4x{}.npy'.format(m, region_count), mapping_set)
 
 
 if __name__ == '__main__':
