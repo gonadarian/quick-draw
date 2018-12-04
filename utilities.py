@@ -6,25 +6,25 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
-def get_embeddings(encoder, sample, threshold=1, show=False):
+def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     # prepare sample
-    assert sample.shape == (28, 28)
-    sample = sample.reshape((1, 28, 28, 1))
+    assert sample.shape == (dim, dim)
+    sample = sample.reshape((1, dim, dim, 1))
 
     # get prediction
     y_pred = encoder.predict(sample)
-    assert y_pred.shape == (1, 28, 28, 17)
+    assert y_pred.shape == (1, dim, dim, 17)
     y_pred = y_pred[0]
 
     # extract relevant pixels
-    sample = sample.reshape(28, 28)
+    sample = sample.reshape(dim, dim)
     idx_sample = np.argwhere(sample >= threshold)
     assert idx_sample.shape[1:] == (2, )
     embeddings = y_pred[idx_sample[:, 0], idx_sample[:, 1], :]
 
     # convert from relative positions which can't be compared,
     # to absolute ones suitable for k-means clustering
-    centers = idx_sample[:, [1, 0]] / 27 - .5 + embeddings[:, 1:3]
+    centers = idx_sample[:, [1, 0]] / (dim - 1) - .5 + embeddings[:, 1:3]
     embeddings[:, 1:3] = centers
 
     if show:
@@ -100,21 +100,21 @@ def show_elbow_curve(encodings, show=False):
         plt.show()
 
 
-def gen_image(decoder, encoding, center, show=False):
+def gen_image(decoder, encoding, center, dim=28, show=False):
     assert encoding.shape == (14, )
 
     # this is a 14-number encoding for one of the lines in the test set
     encoding = np.reshape(encoding, (1, 1, 1, 14))
     image = decoder.predict(encoding)
-    assert image.shape == (1, 28, 28, 1)
-    image = image.reshape(28, 28)
+    assert image.shape == (1, dim, dim, 1)
+    image = image.reshape(dim, dim)
 
-    from_row = 28 + center[1]
-    from_col = 28 + center[0]
-    shifted = np.zeros((84, 84))
-    shifted[from_row:from_row+28, from_col:from_col+28] = image
-    shifted = shifted[28:56, 28:56]
-    assert shifted.shape == (28, 28)
+    from_row = dim + center[1]
+    from_col = dim + center[0]
+    shifted = np.zeros((dim * 3, dim * 3))
+    shifted[from_row:from_row + dim, from_col:from_col + dim] = image
+    shifted = shifted[dim:dim * 2, dim:dim * 2]
+    assert shifted.shape == (dim, dim)
 
     if show:
         plt.gray()
@@ -132,7 +132,7 @@ def extract_encoding_and_center(cluster):
     return encoding, center
 
 
-def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
+def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, dim=28, show=False):
     assert embeddings.shape[1:] == (17, )
 
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(embeddings)
@@ -143,19 +143,19 @@ def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, show=False):
         encoding, center = extract_encoding_and_center(cluster)
         print('cluster center:', center)
         print('cluster encoding:', encoding)
-        image = gen_image(decoder, encoding, center, show)
+        image = gen_image(decoder, encoding, center, dim=dim, show=show)
         images.append(image)
 
     return images
 
 
-def show_clusters(input_image, cluster_images):
-    assert input_image.shape == (28, 28)
+def show_clusters(input_image, cluster_images, dim=28):
+    assert input_image.shape == (dim, dim)
     n = len(cluster_images)
     cluster_mix = np.array(cluster_images)
-    assert cluster_mix.shape == (n, 28, 28)
+    assert cluster_mix.shape == (n, dim, dim)
     cluster_mix = np.amax(cluster_mix, axis=0)
-    assert cluster_mix.shape == (28, 28)
+    assert cluster_mix.shape == (dim, dim)
 
     cols = n + 2
     fig = plt.figure(figsize=(1, cols))

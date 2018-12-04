@@ -32,7 +32,7 @@ def main():
     images = np.array(images)
     print('shape:', images.shape)
 
-    np.save('data\lines_27x27_centered_v1_{}x{}x{}.npy'.format(len(images), dim, dim), im_set)
+    np.save('data\lines_27x27\line_27x27_centered_v1_{}x{}x{}.npy'.format(len(images), dim, dim), images)
 
 
 if __name__ == '__main__':

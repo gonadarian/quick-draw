@@ -14,17 +14,22 @@ def load(filename, custom_objects=None):
 
 
 def load_autoencoder_model():
-    autoencoder_model = load('lines/lines_autoencoder_v2-385-0.0047.hdf5')
+    autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
     return autoencoder_model
 
 
 def load_autoencoder_model_27x27():
-    autoencoder_model = load('lines/model_autoencoder_v3.1000-0.00212.hdf5')
+    autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
     return autoencoder_model
 
 
 def load_encoder_model():
-    encoder_model = load('lines_encoded/lines_mixed_encoded_v2-091-0.000072.hdf5')
+    encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
+    return encoder_model
+
+
+def load_encoder_model_27x27():
+    encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
     return encoder_model
 
 
@@ -34,8 +39,14 @@ def load_decoder_model():
     return decoder_model
 
 
+def load_decoder_model_27x27():
+    autoencoder_model = load_autoencoder_model_27x27()
+    decoder_model = gen_decoder_model(autoencoder_model)
+    return decoder_model
+
+
 def load_clustering_model():
-    clustering_model = load('pairs_encoded/model_dense_v1-088-0.001555.hdf5')
+    clustering_model = load('lines_28x28/model_dense_v1-088-0.001555.hdf5')
     return clustering_model
 
 
@@ -62,7 +73,6 @@ def load_graph_autoencoder_model(node_count, region_count, version=1):
     return autoencoder_model
 
 
-# representation (14, 1, 1) i.e. 14-dimensional
 def get_model_autoencoder():
 
     input_img = Input(shape=(28, 28, 1))
@@ -173,6 +183,27 @@ def create_encoder_model():
     encoded = x
 
     model = Model(input_img, encoded)
+    return model
+
+
+def create_encoder_model_27x27():
+    input_image = Input(shape=(27, 27, 1))
+
+    x = input_image
+
+    x = Conv2D(4, (3, 3), activation='relu', padding='same', name='enc_conv1')(x)
+    x = Conv2D(8, (3, 3), activation='relu', padding='same', name='enc_conv2')(x)
+    x = Conv2D(12, (5, 5), activation='relu', padding='same', name='enc_conv3')(x)
+    x = Conv2D(16, (5, 5), activation='relu', padding='same', name='enc_conv4')(x)
+    x = Conv2D(20, (7, 7), activation='relu', padding='same', name='enc_conv5')(x)
+    x = Conv2D(24, (5, 5), activation='relu', padding='same', name='enc_conv6')(x)
+    x = Conv2D(28, (5, 5), activation='relu', padding='same', name='enc_conv7')(x)
+    x = Conv2D(22, (3, 3), activation='relu', padding='same', name='enc_conv8')(x)
+    x = Conv2D(17, (3, 3), activation='tanh', padding='same', name='enc_conv9')(x)
+
+    encoded = x
+
+    model = Model(input_image, encoded)
     return model
 
 

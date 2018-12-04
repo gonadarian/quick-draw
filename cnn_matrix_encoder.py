@@ -1,3 +1,4 @@
+import time as t
 import numpy as np
 import models as mdls
 import random as rand
@@ -7,10 +8,14 @@ from scipy import spatial
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
+dim = 27
+channels = 14
+channels_full = 17
+
 preload = True
-train = False
+train = not preload
 predict = True
-analysis = True
+analysis = False
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
@@ -29,12 +34,16 @@ def get_distances(encodings):
 
 
 def load_data():
-    x = np.load('generator\data\line_mixed_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
-    assert x.shape[1:] == (28, 28, 1)
+    # TODO use datasets load method
+    filename = 'generator\data\lines_27x27\line_27x27_mixed_samples_v1_5815x{}x{}x1.npy'
+    x = np.load(filename.format(dim, dim))
+    assert x.shape[1:] == (dim, dim, 1)
     m = x.shape[0]
-    x = np.reshape(x, (m, 28, 28, 1))
-    y = np.load('generator\data\line_mixed_encodings_v2_7234x28x28x17.npy')  # TODO use datasets load method
-    assert y.shape[1:] == (28, 28, 17)
+    x = np.reshape(x, (m, dim, dim, 1))
+    # TODO use datasets load method
+    filename = 'generator\data\lines_27x27\line_27x27_mixed_encodings_v1_5815x{}x{}x{}.npy'
+    y = np.load(filename.format(dim, dim, channels_full))
+    assert y.shape[1:] == (dim, dim, 17)
     assert y.shape[0] == m
     return x, y, m
 
@@ -44,41 +53,40 @@ def main():
     x, y, m = load_data()
 
     if preload:
-        encoder_model = mdls.load_encoder_model()
+        # encoder_model = mdls.load_encoder_model()
+        encoder_model = mdls.load_encoder_model_27x27()
 
     else:
-        encoder_model = mdls.create_encoder_model()
+        # encoder_model = mdls.create_encoder_model()
+        encoder_model = mdls.create_encoder_model_27x27()
         encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
     if train:
-
         encoder_model.fit(
             x, y,
-            epochs=60,
-            batch_size=32,
+            epochs=1000,
+            batch_size=64,
             shuffle=True,
             validation_data=(x, y),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs'),
+                TensorBoard(log_dir='C:\Logs\Conv Embedder v1.b64.{}'.format(int(t.time()))),
                 ModelCheckpoint(
-                    'models\lines_encoded\lines_mixed_encoded_v2-{epoch:03d}-{val_loss:.6f}.hdf5',
+                    'models\lines_27x27\model_encoder_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-            ]
-        )
+            ])
 
     if predict:
-
         predict_single = False
         predict_multiple = True
 
-        decoder_model = mdls.load_decoder_model()
+        decoder_model = mdls.load_decoder_model_27x27()
 
         if predict_single:
 
             idx = rand.randint(0, x.shape[0])
             print('random index:', idx)
             sample = x[idx, :, :, 0]
-            embeddings = utl.get_embeddings(encoder_model, sample, True)
+            embeddings = utl.get_embeddings(encoder_model, sample, dim=27, show=True)
 
             if analysis:
                 offsets = embeddings[:, 1:3]
@@ -103,8 +111,8 @@ def main():
 
             for i in range(n):
                 sample = x[indexes[i], :, :, 0]
-                embeddings = utl.get_embeddings(encoder_model, sample, False)
-                images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, False)
+                embeddings = utl.get_embeddings(encoder_model, sample, dim=27, show=False)
+                images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, dim=27, show=False)
 
                 # display original
                 ax = plt.subplot(fig_rows, n, i + 1)
