@@ -65,44 +65,44 @@ class GraphConv(Layer):
     def call(self, inputs, **kwargs):
         [nodes, mapping] = inputs
 
-        batch_size = tf.shape(mapping)[0]
-        node_size = mapping.shape[1]
-        region_size = mapping.shape[2]
-        assert mapping.shape[1:] == (node_size, region_size)  # (?, 4, 9)
+        m = tf.shape(mapping)[0]
+        vertices = mapping.shape[1]
+        regions = mapping.shape[2]
+        assert mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
-        row_mapping = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
-        row_mapping = tf.tile(row_mapping, [1, node_size * region_size])  # (?, 36)
-        row_mapping = tf.reshape(row_mapping, (-1, node_size, region_size))  # (?, 4, 9)
-        assert row_mapping.shape[1:] == (node_size, region_size)  # (?, 4, 9)
+        row_mapping = tf.reshape(tf.range(m), (-1, 1))  # (?, 1)
+        row_mapping = tf.tile(row_mapping, [1, vertices * regions])  # (?, 36)
+        row_mapping = tf.reshape(row_mapping, (-1, vertices, regions))  # (?, 4, 9)
+        assert row_mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
         nodes_mapping = tf.stack([row_mapping, mapping], axis=-1)  # (?, 4, 9, 2)
-        assert nodes_mapping.shape[1:] == (node_size, region_size, 2)
+        assert nodes_mapping.shape[1:] == (vertices, regions, 2)
 
         empty = tf.constant(-1, dtype=tf.int32)
         non_empty_mask = tf.not_equal(nodes_mapping, empty)  # (?, 4, 9, 2)
-        assert non_empty_mask.shape[1:] == (node_size, region_size, 2)
+        assert non_empty_mask.shape[1:] == (vertices, regions, 2)
         non_empty_mask = tf.reduce_all(non_empty_mask, axis=3)  # (?, 4, 9)
-        assert non_empty_mask.shape[1:] == (node_size, region_size)
+        assert non_empty_mask.shape[1:] == (vertices, regions)
         non_empty_indices = tf.where(non_empty_mask)  # (?, 3)
         assert non_empty_indices.shape[1:] == (3,)
 
         mapped_nodes_indices = tf.gather_nd(nodes_mapping, non_empty_indices)  # (?, 2)
         assert mapped_nodes_indices.shape[1:] == (2,)
 
-        channel_size = nodes.shape[2]
-        assert nodes.shape[1:] == (node_size, channel_size)  # (?, 4, 14)
+        channels = nodes.shape[2]
+        assert nodes.shape[1:] == (vertices, channels)  # (?, 4, 14)
 
         mapped_nodes = tf.gather_nd(nodes, mapped_nodes_indices)  # (?, 14)
-        assert mapped_nodes.shape[1:] == (channel_size,)
+        assert mapped_nodes.shape[1:] == (channels,)
 
         nodes_columns = tf.scatter_nd(
             indices=non_empty_indices,
             updates=mapped_nodes,
-            shape=(batch_size, node_size, region_size, channel_size))
-        assert nodes_columns.shape[1:] == (node_size, region_size, channel_size)  # (?, 4, 9, 14)
+            shape=(m, vertices, regions, channels))
+        assert nodes_columns.shape[1:] == (vertices, regions, channels)  # (?, 4, 9, 14)
 
-        nodes_columns = tf.reshape(nodes_columns, (-1, node_size, region_size * channel_size))
-        assert nodes_columns.shape[1:] == (node_size, region_size * channel_size)  # (?, 4, 126)
+        nodes_columns = tf.reshape(nodes_columns, (-1, vertices, regions * channels))
+        assert nodes_columns.shape[1:] == (vertices, regions * channels)  # (?, 4, 126)
 
         output = k.dot(nodes_columns, self.kernel)
         output = k.bias_add(output, self.bias, data_format='channels_last')
@@ -154,24 +154,24 @@ class Graph2Col(Layer):
     def call(self, inputs, **kwargs):
         mapping = inputs
 
-        batch_size = tf.shape(mapping)[0]
-        node_size = mapping.shape[1]
-        region_size = mapping.shape[2]
-        assert mapping.shape[1:] == (node_size, region_size)  # (?, 4, 9)
+        m = tf.shape(mapping)[0]
+        vertices = mapping.shape[1]
+        regions = mapping.shape[2]
+        assert mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
-        row_mapping = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
-        row_mapping = tf.tile(row_mapping, [1, node_size * region_size])  # (?, 36)
-        row_mapping = tf.reshape(row_mapping, (-1, node_size, region_size))  # (?, 4, 9)
-        assert row_mapping.shape[1:] == (node_size, region_size)  # (?, 4, 9)
+        row_mapping = tf.reshape(tf.range(m), (-1, 1))  # (?, 1)
+        row_mapping = tf.tile(row_mapping, [1, vertices * regions])  # (?, 36)
+        row_mapping = tf.reshape(row_mapping, (-1, vertices, regions))  # (?, 4, 9)
+        assert row_mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
         nodes_mapping = tf.stack([row_mapping, mapping], axis=-1)  # (?, 4, 9, 2)
-        assert nodes_mapping.shape[1:] == (node_size, region_size, 2)
+        assert nodes_mapping.shape[1:] == (vertices, regions, 2)
 
         empty = tf.constant(-1, dtype=tf.int32)
         non_empty_mask = tf.not_equal(nodes_mapping, empty)  # (?, 4, 9, 2)
-        assert non_empty_mask.shape[1:] == (node_size, region_size, 2)
+        assert non_empty_mask.shape[1:] == (vertices, regions, 2)
         non_empty_mask = tf.reduce_all(non_empty_mask, axis=3)  # (?, 4, 9)
-        assert non_empty_mask.shape[1:] == (node_size, region_size)
+        assert non_empty_mask.shape[1:] == (vertices, regions)
         column_indices = tf.where(non_empty_mask)  # (?, 3)
         assert column_indices.shape[1:] == (3,)
 
@@ -214,7 +214,7 @@ class GraphConvV2(Layer):
         super(GraphConvV2, self).__init__(**kwargs)
 
         self.units = units
-        self.regions_size = regions_size
+        self.regions = regions_size
         self.activation = activations.get(activation)
         self.kernel_initializer = initializers.get(kernel_initializer)
         self.bias_initializer = initializers.get(bias_initializer)
@@ -238,9 +238,9 @@ class GraphConvV2(Layer):
     def build(self, input_shape):
         [nodes_shape, _, _] = input_shape
 
-        channel_size = nodes_shape[2]
+        channels = nodes_shape[2]
 
-        dense_input_dim = channel_size * self.regions_size
+        dense_input_dim = channels * self.regions
 
         self.kernel = self.add_weight(shape=(dense_input_dim, self.units),
                                       initializer=self.kernel_initializer,
@@ -255,7 +255,7 @@ class GraphConvV2(Layer):
                                     constraint=self.bias_constraint)
 
         self.input_spec = [
-            InputSpec(ndim=3, axes={-1: channel_size}),
+            InputSpec(ndim=3, axes={-1: channels}),
             InputSpec(ndim=2, axes={-1: 2}),
             InputSpec(ndim=2, axes={-1: 3}),
         ]
@@ -265,22 +265,22 @@ class GraphConvV2(Layer):
     def call(self, inputs, **kwargs):
         [nodes, nodes_indices, column_indices] = inputs
 
-        batch_size = tf.shape(nodes)[0]
-        node_size = nodes.shape[1]
-        channel_size = nodes.shape[2]
-        assert nodes.shape[1:] == (node_size, channel_size)  # (?, 4, 14)
+        m = tf.shape(nodes)[0]
+        vertices = nodes.shape[1]
+        channels = nodes.shape[2]
+        assert nodes.shape[1:] == (vertices, channels)  # (?, 4, 14)
 
         mapped_nodes = tf.gather_nd(nodes, nodes_indices)  # (?, 14)
-        assert mapped_nodes.shape[1:] == (channel_size,)
+        assert mapped_nodes.shape[1:] == (channels,)
 
         nodes_columns = tf.scatter_nd(
             indices=column_indices,
             updates=mapped_nodes,
-            shape=(batch_size, node_size, self.regions_size, channel_size))
-        assert nodes_columns.shape[1:] == (node_size, self.regions_size, channel_size)  # (?, 4, 9, 14)
+            shape=(m, vertices, self.regions, channels))
+        assert nodes_columns.shape[1:] == (vertices, self.regions, channels)  # (?, 4, 9, 14)
 
-        nodes_columns = tf.reshape(nodes_columns, (-1, node_size, self.regions_size * channel_size))
-        assert nodes_columns.shape[1:] == (node_size, self.regions_size * channel_size)  # (?, 4, 126)
+        nodes_columns = tf.reshape(nodes_columns, (-1, vertices, self.regions * channels))
+        assert nodes_columns.shape[1:] == (vertices, self.regions * channels)  # (?, 4, 126)
 
         output = k.dot(nodes_columns, self.kernel)
         output = k.bias_add(output, self.bias, data_format='channels_last')
@@ -300,7 +300,7 @@ class GraphConvV2(Layer):
     def get_config(self):
         config = {
             'units': self.units,
-            'regions_size': self.regions_size,
+            'regions_size': self.regions,
             'activation': activations.serialize(self.activation),
             'kernel_initializer': initializers.serialize(self.kernel_initializer),
             'bias_initializer': initializers.serialize(self.bias_initializer),

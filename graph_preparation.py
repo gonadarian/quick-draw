@@ -33,22 +33,24 @@ def main():
         print('adjacency_matrix:\n', adjacency_matrix)
         print('region_matrix:\n', region_matrix)
 
+    # matrix approach
     row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
     # max 1-neighbourhood size is 8, plus 1 for center node
-    matrix_1 = np.zeros((vertices, region_count, channels_full))
+    matrix_v1 = np.zeros((vertices, region_count, channels_full))
     # fill in the values
-    matrix_1[row_indexes, column_indexes, :] = nodes[node_indexes]
+    matrix_v1[row_indexes, column_indexes, :] = nodes[node_indexes]
 
+    # vector approach
     vector_indexes, node_indexes = utl.get_vector_transformation(adjacency_matrix, region_matrix)
     # max 1-neighbourhood size is 8, plus 1 for center node
     vector = np.zeros((vertices * region_count, channels_full))
     # fill in the values
     vector[vector_indexes, :] = nodes[node_indexes]
-    matrix_2 = vector.reshape((vertices, region_count, channels_full))
+    matrix_v2 = vector.reshape((vertices, region_count, channels_full))
 
     if show:
-        print('matrix_1:\n', matrix_1)
-        print('matrix_2:\n', matrix_2)
+        print('matrix_v1:\n', matrix_v1)
+        print('matrix_v2:\n', matrix_v2)
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import models as mdls
 
 
 dim = 27
+channels_full = 17
 
 rand.seed(1)
 
@@ -37,7 +38,7 @@ def main():
     assert len(other_indexes) == m
 
     # m samples, pps positive and pps negative pairs, two encodings in a pair, 17-dim vector encoding
-    pairs = np.zeros((m, 2 * pairs_per_sample, 2, 17))
+    pairs = np.zeros((m, 2 * pairs_per_sample, 2, channels_full))
 
     for i in range(m):
         if i % 100 == 0:
@@ -57,7 +58,7 @@ def main():
         pairs[i, pairs_per_sample:, 0, :] = encodings[pair_indexes]
         pairs[i, pairs_per_sample:, 1, :] = other_encodings[other_pair_indexes]
 
-    np.save('data\lines_27x27\line_27x27_clusters_v1_{}x10x2x17.npy'.format(m), pairs)
+    np.save('data\lines_27x27\line_27x27_clusters_v1_{}x10x2x{}.npy'.format(m, channels_full), pairs)
     print('saved data', m)
 
 

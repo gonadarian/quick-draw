@@ -55,11 +55,11 @@ def load_clustering_model_27x27():
     return clustering_model
 
 
-def load_graph_autoencoder_model(node_count, region_count, version=1):
+def load_graph_autoencoder_model(vertices, regions, version=1):
     custom_objects = {
         'tf': tf,
-        'node_count': node_count,
-        'region_count': region_count,
+        'node_count': vertices,
+        'region_count': regions,
         'Graph2Col': Graph2Col,
         'GraphConv': GraphConv,
         'GraphConvV2': GraphConvV2,

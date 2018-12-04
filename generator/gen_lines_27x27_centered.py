@@ -20,11 +20,12 @@ def get_img_array(x, y, show=False):
 
 
 def main():
+    center = dim // 2
     images = []
 
-    for x in range(14):
-        for y in range(27):
-            if x == 13 and y == 13:
+    for x in range(center + 1):
+        for y in range(dim):
+            if x == center and y == center:
                 break
             image = get_img_array(x, y, show=False)
             images.append(image)

@@ -1,44 +1,41 @@
 import tensorflow as tf
 
 
-# TODO Should not be global and hardcoded, but passed to lambdas as arguments.
-node_count = 4
-region_count = 9
-
-
 def lambda_graph2col_shape(input_shapes):
     [nodes_shape, mapping_shape] = input_shapes
 
-    batch_size = nodes_shape[0]
-    node_size = nodes_shape[1]
-    node_encoding_size = nodes_shape[2]
-    region_size = mapping_shape[2]
-    column_size = node_encoding_size * region_size
+    m = nodes_shape[0]
+    vertices = nodes_shape[1]
+    channels = nodes_shape[2]
+    regions = mapping_shape[2]
+    columns = channels * regions
 
-    return batch_size, node_size, column_size
+    return m, vertices, columns
 
 
 def lambda_graph2col(inputs):
     [nodes, mapping] = inputs
 
-    batch_size = tf.shape(nodes)[0]
-    channel_size = nodes.shape[2]
-    assert nodes.shape[1:] == (node_count, channel_size)  # (?, 4, 14)
-    assert mapping.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+    m = tf.shape(nodes)[0]
+    vertices = nodes.shape[1]
+    channels = nodes.shape[2]
+    regions = mapping.shape[2]
+    assert nodes.shape[1:] == (vertices, channels)  # (?, 4, 14)
+    assert mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
-    row_mapping = tf.reshape(tf.range(batch_size), (-1, 1))  # (?, 1)
-    row_mapping = tf.tile(row_mapping, [1, node_count * region_count])  # (?, 36)
-    row_mapping = tf.reshape(row_mapping, (-1, node_count, region_count))  # (?, 4, 9)
-    assert row_mapping.shape[1:] == (node_count, region_count)  # (?, 4, 9)
+    row_mapping = tf.reshape(tf.range(m), (-1, 1))  # (?, 1)
+    row_mapping = tf.tile(row_mapping, [1, vertices * regions])  # (?, 36)
+    row_mapping = tf.reshape(row_mapping, (-1, vertices, regions))  # (?, 4, 9)
+    assert row_mapping.shape[1:] == (vertices, regions)  # (?, 4, 9)
 
     nodes_mapping = tf.stack([row_mapping, mapping], axis=-1)  # (?, 4, 9, 2)
-    assert nodes_mapping.shape[1:] == (node_count, region_count, 2)
+    assert nodes_mapping.shape[1:] == (vertices, regions, 2)
 
     empty = tf.constant(-1, dtype=tf.int32)
     non_empty_mask = tf.not_equal(nodes_mapping, empty)  # (?, 4, 9, 2)
-    assert non_empty_mask.shape[1:] == (node_count, region_count, 2)
+    assert non_empty_mask.shape[1:] == (vertices, regions, 2)
     non_empty_mask = tf.reduce_all(non_empty_mask, axis=3)  # (?, 4, 9)
-    assert non_empty_mask.shape[1:] == (node_count, region_count)
+    assert non_empty_mask.shape[1:] == (vertices, regions)
     non_empty_indices = tf.where(non_empty_mask)  # (?, 3)
     assert non_empty_indices.shape[1:] == (3, )
 
@@ -46,32 +43,30 @@ def lambda_graph2col(inputs):
     assert mapped_nodes_indices.shape[1:] == (2, )
 
     mapped_nodes = tf.gather_nd(nodes, mapped_nodes_indices)  # (?, 14)
-    assert mapped_nodes.shape[1:] == (channel_size, )
+    assert mapped_nodes.shape[1:] == (channels, )
 
     nodes_columns = tf.scatter_nd(
         indices=non_empty_indices,
         updates=mapped_nodes,
-        shape=(batch_size, node_count, region_count, channel_size))
-    assert nodes_columns.shape[1:] == (node_count, region_count, channel_size)  # (?, 4, 9, 14)
+        shape=(m, vertices, regions, channels))
+    assert nodes_columns.shape[1:] == (vertices, regions, channels)  # (?, 4, 9, 14)
 
-    nodes_columns = tf.reshape(nodes_columns, (-1, node_count, region_count * channel_size))
-    assert nodes_columns.shape[1:] == (node_count, region_count * channel_size)  # (?, 4, 126)
+    nodes_columns = tf.reshape(nodes_columns, (-1, vertices, regions * channels))
+    assert nodes_columns.shape[1:] == (vertices, regions * channels)  # (?, 4, 126)
 
     return nodes_columns
 
 
 def lambda_mean_shape(nodes_shape):
-    assert nodes_shape[1] == node_count  # (?, 4, 14)
     assert len(nodes_shape) == 3  # (?, 4, 14)
 
-    batch_size = nodes_shape[0]
-    encoding_size = nodes_shape[2]
+    m = nodes_shape[0]
+    channels = nodes_shape[2]
 
-    return batch_size, encoding_size
+    return m, channels
 
 
 def lambda_mean(nodes):
-    assert nodes.shape[1] == node_count  # (?, 4, 14)
     assert len(nodes.shape) == 3  # (?, 4, 14)
 
     nodes_average = tf.reduce_mean(nodes, axis=1)
@@ -81,17 +76,15 @@ def lambda_mean(nodes):
 
 
 def lambda_moments_shape(nodes_shape):
-    assert nodes_shape[1] == node_count  # (?, 4, 14)
     assert len(nodes_shape) == 3  # (?, 4, 14)
 
-    batch_size = nodes_shape[0]
-    encoding_size = nodes_shape[2]
+    m = nodes_shape[0]
+    channels = nodes_shape[2]
 
-    return [(batch_size, encoding_size), (batch_size, encoding_size)]
+    return [(m, channels), (m, channels)]
 
 
 def lambda_moments(nodes):
-    assert nodes.shape[1] == node_count  # (?, 4, 14)
     assert len(nodes.shape) == 3  # (?, 4, 14)
 
     mean, variance = tf.nn.moments(nodes, axes=1)
@@ -104,18 +97,21 @@ def lambda_moments(nodes):
 def lambda_repeat_shape(node_shape):
     assert len(node_shape) == 2  # (?, 14)
 
-    batch_size = node_shape[0]
-    encoding_size = node_shape[1]
+    vertices = 4  # TODO can not remain hardcoded
+    m = node_shape[0]
+    channels = node_shape[1]
 
-    return batch_size, node_count, encoding_size
+    return m, vertices, channels
 
 
 def lambda_repeat(node):
     assert len(node.shape) == 2  # (?, 14)
-    channel_size = node.shape[1]
 
-    node_repeated = tf.tile(node, [1, node_count])
-    node_repeated = tf.reshape(node_repeated, (-1, node_count, channel_size))
-    assert node_repeated.shape[1:] == (node_count, channel_size)  # (?, 4, 14)
+    vertices = 4  # TODO can not remain hardcoded
+    channels = node.shape[1]
+
+    node_repeated = tf.tile(node, [1, vertices])
+    node_repeated = tf.reshape(node_repeated, (-1, vertices, channels))
+    assert node_repeated.shape[1:] == (vertices, channels)  # (?, 4, 14)
 
     return node_repeated

@@ -11,7 +11,8 @@ cluster_threshold = 2
 adjacency_threshold = -30
 channels_full = 17
 channels = 14
-region_count = 9
+regions = 9
+vertices = 4
 
 random_sample = False
 sample_id = 105121
@@ -80,20 +81,19 @@ def main():
     edges = np.array(edges)
     nodes = np.array(nodes)
 
-    regions = utl.get_regions(region_count)
     adjacency_matrix = utl.get_adjacency_matrix_from_edges(nodes_count, edges)
-    region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
+    region_list = utl.get_regions(regions)
+    region_matrix = utl.get_region_matrix(nodes, region_list, show=True, debug=True)
 
-    nodes = nodes
     row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
 
-    mappings = np.full((nodes_count, region_count), -1)
+    mappings = np.full((nodes_count, regions), -1)
     mappings[row_indexes, column_indexes] = node_indexes
 
-    mappings = mappings.reshape((1, nodes_count, region_count))
+    mappings = mappings.reshape((1, nodes_count, regions))
     nodes = nodes.reshape((1, nodes_count, encoding_dim))
 
-    autoencoder_model = mdls.load_graph_autoencoder_model(node_count=4, region_count=region_count, version=4)
+    autoencoder_model = mdls.load_graph_autoencoder_model(vertices, regions, version=4)
     decoded_nodes = autoencoder_model.predict(x=[nodes, mappings])
     decoded_nodes = decoded_nodes[0, :, :]
     print(decoded_nodes)

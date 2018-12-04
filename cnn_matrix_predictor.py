@@ -7,6 +7,13 @@ from PIL import Image, ImageDraw
 
 
 dim = 27
+vertices = 4
+embedding_threshold = 0.9
+cluster_threshold = 2
+adjacency_threshold = -30
+channels_full = 17
+channels = 14
+
 quick_draw_data = False
 custom_shape = 3
 analysis = True
@@ -77,7 +84,7 @@ def main():
     encoder_model = mdls.load_encoder_model_27x27()
     clustering_model = mdls.load_clustering_model_27x27()
 
-    embeddings = utl.get_embeddings(encoder_model, sample, dim=27, threshold=0.9, show=False)
+    embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
     clusters = utl.extract_clusters(cluster_matrix)
 
@@ -89,20 +96,20 @@ def main():
     images = []
     lines = []
     for cluster in clusters:
-        if len(cluster) > 2:
+        if len(cluster) > cluster_threshold:
             cluster_embeddings = embeddings[list(cluster)]
             cluster_embedding = np.mean(cluster_embeddings, axis=0)
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
-            assert encoding.shape == (14, )
+            assert encoding.shape == (channels, )
             assert center.shape == (2, )
-            image = utl.gen_image(decoder_model, encoding, center, dim=27, show=False)
+            image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
             images.append(image)
             lines.append(cluster_embedding)
 
-    utl.show_clusters(sample, images, dim=27)
+    utl.show_clusters(sample, images, dim=dim)
 
-    adjacency_matrix = utl.get_adjacency_matrix(images, dim=27, show=True)
-    adjacency_matrix = adjacency_matrix > -30
+    adjacency_matrix = utl.get_adjacency_matrix(images, dim=dim, show=True)
+    adjacency_matrix = adjacency_matrix > adjacency_threshold
     print(adjacency_matrix)
 
     edges = utl.get_graph_edges(adjacency_matrix)

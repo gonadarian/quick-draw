@@ -12,15 +12,15 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     sample = sample.reshape((1, dim, dim, 1))
 
     # get prediction
-    y_pred = encoder.predict(sample)
-    assert y_pred.shape == (1, dim, dim, 17)
-    y_pred = y_pred[0]
+    prediction = encoder.predict(sample)
+    assert prediction.shape == (1, dim, dim, 17)
+    prediction = prediction[0]
 
     # extract relevant pixels
     sample = sample.reshape(dim, dim)
     idx_sample = np.argwhere(sample >= threshold)
     assert idx_sample.shape[1:] == (2, )
-    embeddings = y_pred[idx_sample[:, 0], idx_sample[:, 1], :]
+    embeddings = prediction[idx_sample[:, 0], idx_sample[:, 1], :]
 
     # convert from relative positions which can't be compared,
     # to absolute ones suitable for k-means clustering
@@ -178,10 +178,10 @@ def show_clusters(input_image, cluster_images, dim=28):
 
 
 def get_adjacency_matrix(images, dim=28, show=False):
-    m = len(images)
-    matrix = np.array(images).reshape((m, dim * dim))
+    vertices = len(images)
+    matrix = np.array(images).reshape((vertices, dim * dim))
     adjacency_matrix = np.dot(matrix, matrix.T)
-    adjacency_matrix[range(m), range(m)] = 0
+    adjacency_matrix[range(vertices), range(vertices)] = 0
     adjacency_matrix = np.log(adjacency_matrix)
 
     if show:
@@ -190,14 +190,14 @@ def get_adjacency_matrix(images, dim=28, show=False):
     return adjacency_matrix
 
 
-def get_adjacency_matrix_from_edges(vertices, edges, self_connected=True):
+def get_adjacency_matrix_from_edges(vertices, edge_list, self_connected=True):
     adjacency_matrix = np.zeros((vertices, vertices))
-    adjacency_matrix[edges[:, 0], edges[:, 1]] = 1
+    adjacency_matrix[edge_list[:, 0], edge_list[:, 1]] = 1
     adjacency_matrix += adjacency_matrix.T
 
     if self_connected:
-        diag_indexes = range(vertices)
-        adjacency_matrix[diag_indexes, diag_indexes] = 1
+        diagonal_indexes = range(vertices)
+        adjacency_matrix[diagonal_indexes, diagonal_indexes] = 1
 
     return adjacency_matrix
 
@@ -258,12 +258,12 @@ def get_regions(region_count=9, show=False):
     return regions
 
 
-def get_region_matrix(nodes, regions, show=False, debug=False):
-    node_count = len(nodes)
-    region_matrix = np.zeros((node_count, node_count, 5)) if debug else np.zeros((node_count, node_count))
+def get_region_matrix(node_list, region_list, show=False, debug=False):
+    vertices = len(node_list)
+    region_matrix = np.zeros((vertices, vertices, 5)) if debug else np.zeros((vertices, vertices))
 
-    for i in range(node_count):
-        for j in range(node_count):
+    for i in range(vertices):
+        for j in range(vertices):
             if i == j:
                 # center node uses reserved region 0
                 if debug:
@@ -272,13 +272,13 @@ def get_region_matrix(nodes, regions, show=False, debug=False):
                     region_matrix[i, j] = 0
                 continue
 
-            dx = nodes[j, 1] - nodes[i, 1]
-            dy = nodes[j, 2] - nodes[i, 2]
+            dx = node_list[j, 1] - node_list[i, 1]
+            dy = node_list[j, 2] - node_list[i, 2]
             rad = m.atan2(dy, dx)
             deg = rad * 180 / m.pi
-            region_index = np.logical_and(regions[:, 0] <= rad, regions[:, 1] >= rad)
+            region_index = np.logical_and(region_list[:, 0] <= rad, region_list[:, 1] >= rad)
             region_index = np.argwhere(region_index).reshape((1, ))
-            region = regions[region_index].reshape((3, ))
+            region = region_list[region_index].reshape((3,))
 
             if show:
                 print('region:', i, j, region)

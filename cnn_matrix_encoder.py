@@ -53,11 +53,9 @@ def main():
     x, y, m = load_data()
 
     if preload:
-        # encoder_model = mdls.load_encoder_model()
         encoder_model = mdls.load_encoder_model_27x27()
 
     else:
-        # encoder_model = mdls.create_encoder_model()
         encoder_model = mdls.create_encoder_model_27x27()
         encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
@@ -86,7 +84,7 @@ def main():
             idx = rand.randint(0, x.shape[0])
             print('random index:', idx)
             sample = x[idx, :, :, 0]
-            embeddings = utl.get_embeddings(encoder_model, sample, dim=27, show=True)
+            embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, show=True)
 
             if analysis:
                 offsets = embeddings[:, 1:3]
@@ -111,8 +109,8 @@ def main():
 
             for i in range(n):
                 sample = x[indexes[i], :, :, 0]
-                embeddings = utl.get_embeddings(encoder_model, sample, dim=27, show=False)
-                images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, dim=27, show=False)
+                embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, show=False)
+                images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, dim=dim, show=False)
 
                 # display original
                 ax = plt.subplot(fig_rows, n, i + 1)

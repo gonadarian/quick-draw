@@ -3,7 +3,6 @@ import random as rand
 
 
 dim = 27
-channels = 14
 channels_full = 17
 
 rand.seed(1)
@@ -50,8 +49,10 @@ def main():
         samples_mix[index, ...] = sample
         encodings_mix[index, ...] = encoding
 
-    np.save('data\lines\line_27x27_mixed_samples_v1_{}x{}x{}x1.npy'.format(m, dim, dim), samples_mix)
-    np.save('data\lines\line_27x27_mixed_encodings_v1_{}x{}x{}x{}.npy'.format(m, dim, dim, channels_full), encodings_mix)
+    filename = 'data\lines\line_27x27_mixed_samples_v1_{}x{}x{}x1.npy'.format(m, dim, dim)
+    np.save(filename, samples_mix)
+    filename = 'data\lines\line_27x27_mixed_encodings_v1_{}x{}x{}x{}.npy'.format(m, dim, dim, channels_full)
+    np.save(filename, encodings_mix)
 
 
 if __name__ == '__main__':

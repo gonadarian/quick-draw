@@ -17,11 +17,9 @@ analyze_2 = False
 def main():
 
     if preload:
-        # autoencoder_model = mdls.load_autoencoder_model()
         autoencoder_model = mdls.load_autoencoder_model_27x27()
 
     else:
-        # autoencoder_model = mdls.get_model_autoencoder()
         autoencoder_model = mdls.get_model_autoencoder_27x27()
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
