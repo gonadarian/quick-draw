@@ -176,11 +176,11 @@ def show_clusters(input_image, cluster_images, dim=28):
     plt.show()
 
 
-def get_adjacency_matrix(images, show=False):
-    dim = len(images)
-    matrix = np.array(images).reshape((dim, 28 * 28))
+def get_adjacency_matrix(images, dim=28, show=False):
+    m = len(images)
+    matrix = np.array(images).reshape((m, dim * dim))
     adjacency_matrix = np.dot(matrix, matrix.T)
-    adjacency_matrix[range(dim), range(dim)] = 0
+    adjacency_matrix[range(m), range(m)] = 0
     adjacency_matrix = np.log(adjacency_matrix)
 
     if show:

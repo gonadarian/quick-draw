@@ -6,23 +6,26 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 
+dim = 27
 quick_draw_data = False
-custom_shape = 1
-analysis = False
-saving = True
+custom_shape = 3
+analysis = True
+saving = False
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
 def load_quick_draw_data_set():
     data = np.load('generator/data/triangle.npy')  # TODO use datasets load method
-    data = data.reshape((-1, 28, 28))
+    data = data.reshape((-1, 28, 28))[:, :dim, :dim]
     data = data.astype('float32') / 255.
+
+    assert data.shape[1:] == (dim, dim)
     return data
 
 
 def load_custom_data_sample(shape=1, show=False):
-    im = Image.new("L", (28, 28), "black")
+    im = Image.new("L", (dim, dim), "black")
     draw = ImageDraw.Draw(im)
 
     if shape == 0:  # shape: square
@@ -68,13 +71,13 @@ def main():
     else:
         sample = load_custom_data_sample(shape=custom_shape, show=False)
 
-    assert sample.shape == (28, 28)
+    assert sample.shape == (dim, dim)
 
-    decoder_model = mdls.load_decoder_model()
-    encoder_model = mdls.load_encoder_model()
-    clustering_model = mdls.load_clustering_model()
+    decoder_model = mdls.load_decoder_model_27x27()
+    encoder_model = mdls.load_encoder_model_27x27()
+    clustering_model = mdls.load_clustering_model_27x27()
 
-    embeddings = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
+    embeddings = utl.get_embeddings(encoder_model, sample, dim=27, threshold=0.9, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
     clusters = utl.extract_clusters(cluster_matrix)
 
@@ -92,13 +95,13 @@ def main():
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
             assert encoding.shape == (14, )
             assert center.shape == (2, )
-            image = utl.gen_image(decoder_model, encoding, center, show=False)
+            image = utl.gen_image(decoder_model, encoding, center, dim=27, show=False)
             images.append(image)
             lines.append(cluster_embedding)
 
-    utl.show_clusters(sample, images)
+    utl.show_clusters(sample, images, dim=27)
 
-    adjacency_matrix = utl.get_adjacency_matrix(images, show=True)
+    adjacency_matrix = utl.get_adjacency_matrix(images, dim=27, show=True)
     adjacency_matrix = adjacency_matrix > -30
     print(adjacency_matrix)
 

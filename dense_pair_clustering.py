@@ -1,3 +1,4 @@
+import time as t
 import numpy as np
 import models as mdls
 import random as rand
@@ -5,24 +6,26 @@ import utilities as utl
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
-preload = True
-train = False
-predict = True
-cluster = True
+dim = 27
+preload = False
+train = not preload
+predict = False
+cluster = False
 
 rand.seed(1)
 np.random.seed(1)
 
 
 def get_data():
-    x = np.load('generator\data\encoding_clusters_v2_7234x10x2x17.npy')  # TODO use datasets load method
-    assert x.shape == (7234, 10, 2, 17)
+    # TODO use datasets load method
+    x = np.load('generator\data\lines_27x27\line_27x27_clusters_v1_5815x10x2x17.npy')
+    assert x.shape == (5815, 10, 2, 17)
 
-    x = x.reshape((72340, 34))
+    x = x.reshape((58150, 34))
     m = x.shape[0]
 
     y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10).reshape((m, 1))
-    assert y.shape == (72340, 1)
+    assert y.shape == (58150, 1)
 
     return x, y
 
@@ -46,9 +49,9 @@ def main():
             shuffle=True,
             validation_data=(x, y),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs'),
+                TensorBoard(log_dir='C:\Logs\Dense Clustering v1.b32.{}'.format(int(t.time()))),
                 ModelCheckpoint(
-                    'models\pairs_encoded\model_dense_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
+                    'models\lines_27x27\model_clustering_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
                     monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
             ]
         )
@@ -56,10 +59,11 @@ def main():
     cluster_matrix = None
 
     if predict:
-        x_image = np.load('generator\data\line_samples_v2_7234x28x28x1.npy')  # TODO use datasets load method
-        assert x_image.shape == (7234, 28, 28, 1)
-
+        # TODO use datasets load method
+        x_image = np.load('generator\data\lines_27x27\line_27x27_samples_v1_5815x27x27x1.npy')
+        assert x_image.shape == (5815, dim, dim, 1)
         m = x_image.shape[0]
+
         indexes = np.random.randint(m, size=2)
         samples = x_image[indexes]
 
@@ -74,7 +78,8 @@ def main():
         cluster_matrix = utl.calculate_cluster_matrix(clustering_model, y_mix)
 
     if cluster:
-        cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')  # TODO use datasets load method
+        # TODO use datasets load method
+        cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')
 
     if predict or cluster:
         clusters = utl.extract_clusters(cluster_matrix)

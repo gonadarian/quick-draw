@@ -50,6 +50,11 @@ def load_clustering_model():
     return clustering_model
 
 
+def load_clustering_model_27x27():
+    clustering_model = load('lines_27x27/model_clustering_v1-097-0.002884.hdf5')
+    return clustering_model
+
+
 def load_graph_autoencoder_model(node_count, region_count, version=1):
     custom_objects = {
         'tf': tf,
