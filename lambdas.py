@@ -1,6 +1,9 @@
 import tensorflow as tf
 
 
+# TODO move to libs
+
+
 def lambda_graph2col_shape(input_shapes):
     [nodes_shape, mapping_shape] = input_shapes
 

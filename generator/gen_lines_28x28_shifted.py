@@ -2,21 +2,10 @@ import math
 import numpy as np
 import random as rand
 import models as mdls
+import libs.generators as gens
 
 
 rand.seed(1)
-
-
-def get_shift_matrix():
-    d = np.zeros((28, 28, 2))
-    row = np.arange(0, 28).reshape((1, 28, 1))
-    col = np.arange(0, 28).reshape((28, 1, 1))
-    d[:, :, [0]] = row
-    d[:, :, [1]] = col
-    d -= 13.5
-    d /= -27
-    d = d.reshape((1, 28, 28, 2))
-    return d
 
 
 def generated_shifted_samples(sample, density=0.3):
@@ -49,8 +38,8 @@ def generated_shifted_samples(sample, density=0.3):
 
 
 def main():
-    d = get_shift_matrix()
-    assert d.shape == (1, 28, 28, 2)
+    shift_matrix = gens.get_shift_matrix(28)
+    assert shift_matrix.shape == (1, 28, 28, 2)
 
     x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
     x = x.astype('float32') / 255.
@@ -83,7 +72,7 @@ def main():
             sample = sample.reshape((28, 28, 1))
             shift = np.zeros((1, 1, 1, 2))
             shift[0, 0, 0, :] = [shift_col / 27, shift_row / 27]  # 28 points, but 27 ranges!!!
-            shift = d + shift
+            shift = shift_matrix + shift
             y = np.zeros((28, 28, 17))
             y[:, :, [0]] = sample
             y[:, :, 1:3] = sample * shift

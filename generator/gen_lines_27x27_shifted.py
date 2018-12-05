@@ -3,6 +3,7 @@ import numpy as np
 import random as rand
 import models as mdls
 import datasets as ds
+import libs.generators as gens
 
 
 dim = 27
@@ -10,18 +11,6 @@ channels = 14
 channels_full = 17
 
 rand.seed(1)
-
-
-def get_shift_matrix():
-    d = np.zeros((dim, dim, 2))
-    row = np.arange(0, dim).reshape((1, dim, 1))
-    col = np.arange(0, dim).reshape((dim, 1, 1))
-    d[:, :, [0]] = row
-    d[:, :, [1]] = col
-    d -= (dim - 1) / 2
-    d /= -(dim - 1)
-    d = d.reshape((1, dim, dim, 2))
-    return d
 
 
 def generated_shifted_samples(sample, density=0.3):
@@ -54,8 +43,8 @@ def generated_shifted_samples(sample, density=0.3):
 
 
 def main():
-    d = get_shift_matrix()
-    assert d.shape == (1, dim, dim, 2)
+    shift_matrix = gens.get_shift_matrix(dim)
+    assert shift_matrix.shape == (1, dim, dim, 2)
 
     x = ds.load_images_line_27x27_centered()
     m = x.shape[0]
@@ -86,7 +75,7 @@ def main():
 
             shift = np.zeros((1, 1, 1, 2))
             shift[0, 0, 0, :] = [shift_col / (dim - 1), shift_row / (dim - 1)]  # 'dim' points, but 'dim-1' ranges
-            shift = d + shift
+            shift = shift_matrix + shift
 
             y = np.zeros((dim, dim, channels_full))
             y[:, :, [0]] = sample

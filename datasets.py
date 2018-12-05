@@ -2,6 +2,9 @@ import os
 import numpy as np
 
 
+# TODO move to libs
+
+
 def load(filename):
     path = os.path.join(os.path.dirname(__file__), 'generator/data/', filename)
     dataset = np.load(path)

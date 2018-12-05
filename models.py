@@ -7,6 +7,9 @@ from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
 from layers import GraphConv, GraphConvV2, Graph2Col
 
 
+# TODO move to libs
+
+
 def load(filename, custom_objects=None):
     path = os.path.join(os.path.dirname(__file__), 'models/', filename)
     model = load_model(path, custom_objects)

@@ -1,39 +1,10 @@
 import numpy as np
 import random as rand
 import models as mdls
-import matplotlib.pyplot as plt
+import utilities as utl
 
 
 rand.seed(1)
-
-
-# TODO replace with utilities implementation
-def get_encodings(encoder, sample, show=False):
-    # prepare sample
-    assert sample.shape == (28, 28)
-    sample = sample.reshape((1, 28, 28, 1))
-
-    # get prediction
-    y_pred = encoder.predict(sample)
-    assert y_pred.shape == (1, 28, 28, 17)
-    y_pred = y_pred[0]
-
-    # extract relevant pixels
-    sample = sample.reshape(28, 28)
-    idx_sample = np.argwhere(sample == 1)
-    assert idx_sample.shape[1:] == (2, )
-    embeddings = y_pred[idx_sample[:, 0], idx_sample[:, 1], :]
-
-    # convert from relative positions which can't be compared,
-    # to absolute ones suitable for k-means clustering
-    centers = idx_sample[:, [1, 0]] / 27 - .5 + embeddings[:, 1:3]
-    embeddings[:, 1:3] = centers
-
-    if show:
-        plt.imshow(sample)
-        plt.show()
-
-    return embeddings
 
 
 def main():
@@ -54,7 +25,7 @@ def main():
             print('\tencoding is at', i)
 
         sample = samples[i, :, :, 0]
-        encoding_list = get_encodings(encoder_model, sample, False)
+        encoding_list = utl.get_embeddings(encoder_model, sample, show=False)
         encoding_lists.append(encoding_list)
 
     print('start pairing...')

@@ -4,6 +4,9 @@ from keras import activations, initializers, regularizers, constraints
 from keras.engine.topology import Layer, InputSpec
 
 
+# TODO move to libs
+
+
 class GraphConv(Layer):
 
     def __init__(self, units,

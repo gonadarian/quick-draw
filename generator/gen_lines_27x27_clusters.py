@@ -1,7 +1,7 @@
 import numpy as np
 import random as rand
-import utilities as utl
 import models as mdls
+import utilities as utl
 
 
 dim = 27
