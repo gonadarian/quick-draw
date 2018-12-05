@@ -13,11 +13,13 @@ def load(filename, custom_objects=None):
     return model
 
 
+# TODO refactor to return both autoencoder, encoder and decoder models
 def load_autoencoder_model():
     autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
     return autoencoder_model
 
 
+# TODO refactor to return both autoencoder, encoder and decoder models
 def load_autoencoder_model_27x27():
     autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
     return autoencoder_model
@@ -78,6 +80,7 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
     return autoencoder_model
 
 
+# TODO refactor to return both autoencoder, encoder and decoder models
 def get_model_autoencoder():
 
     input_img = Input(shape=(28, 28, 1))
@@ -114,6 +117,7 @@ def get_model_autoencoder():
     return model
 
 
+# TODO refactor to return both autoencoder, encoder and decoder models
 def get_model_autoencoder_27x27():
     input_image = Input(shape=(27, 27, 1))
 
@@ -149,6 +153,7 @@ def get_model_autoencoder_27x27():
     return model
 
 
+# TODO deprecate in favour of the above
 def gen_decoder_model(autoencoder, show=False):
     # remove layers from encoder part of auto-encoder
     for i in range(9):
@@ -196,6 +201,7 @@ def create_encoder_model_27x27():
 
     x = input_image
 
+    # TODO refactor as a loop with method parameters controlling the layers' params
     x = Conv2D(4, (3, 3), activation='relu', padding='same', name='enc_conv1')(x)
     x = Conv2D(8, (3, 3), activation='relu', padding='same', name='enc_conv2')(x)
     x = Conv2D(12, (5, 5), activation='relu', padding='same', name='enc_conv3')(x)
@@ -228,12 +234,14 @@ def create_clustering_model():
     return model
 
 
+# TODO move to losses file
 def absolute_loss(vector):
     loss = k.mean(vector)
     assert loss.shape == ()
     return loss
 
 
+# TODO remove
 def create_graph_autoencoder_model_legacy(node_count, encoding_dim, region_count, version=1):
     versions = {
         1: _create_graph_autoencoder_model_v1,
@@ -246,6 +254,7 @@ def create_graph_autoencoder_model_legacy(node_count, encoding_dim, region_count
     return model
 
 
+# TODO remove
 def _create_graph_autoencoder_model_v1(node_count, encoding_dim, region_count):
     input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
     input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
@@ -289,6 +298,7 @@ def _create_graph_autoencoder_model_v1(node_count, encoding_dim, region_count):
     return model
 
 
+# TODO remove
 def _create_graph_autoencoder_model_v2(node_count, encoding_dim, region_count):
     input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
     input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
@@ -320,6 +330,7 @@ def _create_graph_autoencoder_model_v2(node_count, encoding_dim, region_count):
     return model
 
 
+# TODO remove
 def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
     input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
     input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
@@ -378,6 +389,7 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
                 nodes_indices,
                 column_indices])
 
+        # TODO merge this into the above loop
         encoding = GraphConvV2(embedding_units, activation='tanh', name='GraphConv_Enc_{}'.format(layer + 2))([
             encoding,
             nodes_indices,
@@ -395,6 +407,7 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
                 nodes_indices,
                 column_indices])
 
+        # TODO merge this into the above loop
         decoding = GraphConvV2(input_units, activation='tanh', name='GraphConv_Dec_{}'.format(layer + 2))([
             decoding,
             nodes_indices,
