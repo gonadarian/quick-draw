@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import random as rand
 import libs.models as mdls
@@ -8,40 +7,12 @@ import libs.generators as gens
 rand.seed(1)
 
 
-def generated_shifted_samples(sample, density=0.3):
-    assert sample.shape == (28, 28)
-
-    [empty_rows, empty_cols] = np.amin(np.where(sample == 1), axis=1)
-    sub_image = sample[empty_rows:28 - empty_rows, empty_cols:28 - empty_cols]
-
-    # lines are not centered after all.... so +1/-1 on couple of places :(
-    rows = 28 - 2 * empty_rows
-    cols = 28 - 2 * empty_cols
-
-    max_image_count = 0 if empty_rows == 0 and empty_cols == 0 else\
-        2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
-        4 * empty_rows * empty_cols
-
-    image_count = math.ceil(max_image_count * density)
-    samples = [(sample, 0, 0)]
-
-    for i in range(image_count):
-        shift_row = 0 if empty_rows == 0 else rand.randint(-empty_rows, empty_rows)
-        shift_col = 0 if empty_cols == 0 else rand.randint(-empty_cols, empty_cols)
-        from_row = empty_rows + shift_row
-        from_col = empty_cols + shift_col
-        shifted_sample = np.zeros((28, 28))
-        shifted_sample[from_row:from_row+rows, from_col:from_col+cols] = sub_image
-        samples.append((shifted_sample, shift_row, shift_col))
-
-    return samples
-
-
 def main():
     shift_matrix = gens.get_shift_matrix(28)
     assert shift_matrix.shape == (1, 28, 28, 2)
 
-    x = np.load('data\line_originals_v2_392x28x28.npy')  # TODO use datasets load method
+    # TODO use datasets load method
+    x = np.load('data\lines_28x28\line_originals_v2_392x28x28.npy')
     x = x.astype('float32') / 255.
     m = x.shape[0]
     x = np.reshape(x, (m, 28, 28, 1))
@@ -66,7 +37,7 @@ def main():
         x_sample = x_sample[0][0, :, :, 0]
         assert x_sample.shape == (28, 28)
 
-        samples = generated_shifted_samples(x_sample, density=0.1)
+        samples = gens.generated_shifted_samples(x_sample, 28, density=0.1)
         for sample, shift_row, shift_col in samples:
             assert sample.shape == (28, 28)
             sample = sample.reshape((28, 28, 1))

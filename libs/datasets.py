@@ -3,7 +3,7 @@ import numpy as np
 
 
 def load(filename):
-    path = os.path.join(os.path.dirname(__file__), 'generator/data/', filename)
+    path = os.path.join(os.path.dirname(__file__), '../generator/data/', filename)
     dataset = np.load(path)
     return dataset
 
