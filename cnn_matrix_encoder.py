@@ -1,8 +1,8 @@
 import time as t
 import numpy as np
-import models as mdls
 import random as rand
-import utilities as utl
+import libs.models as mdls
+import libs.utilities as utl
 import matplotlib.pyplot as plt
 from scipy import spatial
 from keras.callbacks import TensorBoard, ModelCheckpoint

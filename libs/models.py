@@ -1,13 +1,10 @@
 import os
-import lambdas as ls
 import tensorflow as tf
 import keras.backend as k
+import libs.lambdas as ls
+from libs.layers import GraphConv, GraphConvV2, Graph2Col
 from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
-from layers import GraphConv, GraphConvV2, Graph2Col
-
-
-# TODO move to libs
 
 
 def load(filename, custom_objects=None):

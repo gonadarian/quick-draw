@@ -1,8 +1,8 @@
 import math
 import numpy as np
 import random as rand
-import models as mdls
-import datasets as ds
+import libs.models as mdls
+import libs.datasets as ds
 import libs.generators as gens
 
 

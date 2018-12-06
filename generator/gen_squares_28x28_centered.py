@@ -1,6 +1,6 @@
 import numpy as np
-import models as mdls
-import utilities as utl
+import libs.models as mdls
+import libs.utilities as utl
 import libs.generators as gens
 
 

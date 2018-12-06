@@ -1,9 +1,9 @@
 import numpy as np
-import models as mdls
-import datasets as ds
-import utilities as utl
 import tensorflow as tf
 import keras.backend as k
+import libs.models as mdls
+import libs.datasets as ds
+import libs.utilities as utl
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 

@@ -1,8 +1,8 @@
 import time as t
 import numpy as np
-import models as mdls
 import random as rand
-import datasets as ds
+import libs.models as mdls
+import libs.datasets as ds
 import matplotlib.pyplot as plt
 from keras.callbacks import TensorBoard, ModelCheckpoint
 

@@ -6,9 +6,6 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
-# TODO move to libs
-
-
 def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     # prepare sample
     assert sample.shape == (dim, dim)

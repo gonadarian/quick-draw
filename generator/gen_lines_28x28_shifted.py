@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import random as rand
-import models as mdls
+import libs.models as mdls
 import libs.generators as gens
 
 

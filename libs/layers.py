@@ -1,10 +1,7 @@
 import tensorflow as tf
-from keras import backend as k
+import keras.backend as k
 from keras import activations, initializers, regularizers, constraints
 from keras.engine.topology import Layer, InputSpec
-
-
-# TODO move to libs
 
 
 class GraphConv(Layer):

@@ -1,6 +1,6 @@
 import numpy as np
-import datasets as ds
-import utilities as utl
+import libs.datasets as ds
+import libs.utilities as utl
 
 
 vertices = 4

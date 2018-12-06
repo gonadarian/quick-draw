@@ -1,8 +1,7 @@
 import numpy as np
 import random as rand
-import models as mdls
-import utilities as utl
-
+import libs.models as mdls
+import libs.utilities as utl
 
 dim = 27
 channels_full = 17
