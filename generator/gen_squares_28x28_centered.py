@@ -1,13 +1,12 @@
 import numpy as np
 import models as mdls
 import utilities as utl
-from PIL import Image, ImageDraw
+import libs.generators as gens
 
 
-w = 28
-node_count = 4
-edge_count = 4
-region_count = 9
+vertices = 4
+edges = 4
+regions = 9
 channels = 14
 channels_full = 17
 adjacency_threshold = -30
@@ -16,134 +15,131 @@ saving = True
 testing = False
 
 
-def get_img_array(x, y, show=False):
-    image = Image.new("L", (w, w), "black")
-
-    draw = ImageDraw.Draw(image)
-
+def square_drawer(draw, dim, params):
+    assert len(params) == 2
+    x, y = params
     # 0-based 2,4  4,25  25,23  23,2
     # x,y  y,w-x-1  w-x-1,w-y-1  w-y-1,x
-    draw.line((x, y, y, w-1-x), fill=255)
-    draw.line((y, w-1-x, w-x-1, w-y-1), fill=255)
-    draw.line((w-x-1, w-y-1, w-y-1, x), fill=255)
-    draw.line((w-y-1, x, x, y), fill=255)
-
-    image_array = np.asarray(image)
-
-    if show:
-        print(image_array)
-        image.show()
-
-    return image_array
+    draw.line((x, y, y, dim - 1 - x), fill=255)
+    draw.line((y, dim - 1 - x, dim - x - 1, dim - y - 1), fill=255)
+    draw.line((dim - x - 1, dim - y - 1, dim - y - 1, x), fill=255)
+    draw.line((dim - y - 1, x, x, y), fill=255)
 
 
 def get_images():
-    quadrant_w = w // 2 - 1
-    im_set = np.empty([quadrant_w ** 2, w, w])
+    dim = 28
+    quadrant_width = dim // 2 - 1
 
-    for x in range(quadrant_w):
-        for y in range(quadrant_w):
-            im_array = get_img_array(x, y, False)
-            im_array = im_array.astype('float32') / 255.
-            im_set[x * quadrant_w + y, :, :] = im_array
+    image_list = []
+    for x in range(quadrant_width):
+        for y in range(quadrant_width):
+            params = [x, y]
+            image = gens.draw_image(dim, params, drawer=square_drawer, show=False)
+            image = image.astype('float32') / 255.
+            image_list.append(image)
 
-    return im_set
+    return np.array(image_list)
 
 
 def get_graph(decoder_model, encoder_model, clustering_model, sample, show=False):
-    embeddings = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
-    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
-    clusters = utl.extract_clusters(cluster_matrix)
+    embedding_list = utl.get_embeddings(encoder_model, sample, threshold=0.9, show=False)
+    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embedding_list)
+    cluster_list = utl.extract_clusters(cluster_matrix)
 
-    images = []
-    lines = []
-    for cluster in clusters:
+    image_list = []
+    vertex_list = []
+    for cluster in cluster_list:
         if len(cluster) > 2:
-            cluster_embeddings = embeddings[list(cluster)]
+            cluster_embeddings = embedding_list[list(cluster)]
             cluster_embedding = np.mean(cluster_embeddings, axis=0)
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
             assert encoding.shape == (channels, )
             assert center.shape == (2, )
-            image = utl.gen_image(decoder_model, encoding, center, show=False)
-            images.append(image)
-            lines.append(cluster_embedding)
 
-    adjacency_matrix = utl.get_adjacency_matrix(images, show=False)
+            image = utl.gen_image(decoder_model, encoding, center, show=False)
+            image_list.append(image)
+            vertex_list.append(cluster_embedding)
+
+    adjacency_matrix = utl.get_adjacency_matrix(image_list, show=False)
     adjacency_matrix = adjacency_matrix > adjacency_threshold
-    edges = utl.get_graph_edges(adjacency_matrix)
+    edge_list = utl.get_graph_edges(adjacency_matrix)
 
     if show:
-        utl.show_clusters(sample, images)
+        utl.show_clusters(sample, image_list)
         print(adjacency_matrix)
-        utl.draw_graph(edges)
+        utl.draw_graph(edge_list)
 
-    return lines, edges
+    return vertex_list, edge_list
 
 
 def main():
-    images = get_images()
+    image_list = get_images()
+    m = len(image_list)
 
     if saving:
-        np.save('data\square_originals_v1_{}x28x28.npy'.format(len(images)), images)
+        np.save('data\square_originals_v1_{}x28x28.npy'.format(m), image_list)
 
     decoder_model = mdls.load_decoder_model()
     encoder_model = mdls.load_encoder_model()
     clustering_model = mdls.load_clustering_model()
 
     if testing:
-
         test_index = 165  # 166  # 142  # 127  # 100  #73  # 26
-        nodes, edges = get_graph(decoder_model, encoder_model, clustering_model, images[test_index], show=True)
+        image = image_list[test_index]
+        vertex_list, edge_list = get_graph(decoder_model, encoder_model, clustering_model, image, show=True)
+
         print('image no:', test_index)
-        print('\tlines:', len(nodes))
-        print('\tedges:', len(edges), edges)
+        print('\tlines:', len(vertex_list))
+        print('\tedge_list:', len(edge_list), edge_list)
 
         return
 
-    nodes_set = []
-    edges_set = []
+    vertex_matrix = []
+    edge_matrix = []
 
-    for index in range(len(images)):
-        image = images[index]
-        nodes, edges = get_graph(decoder_model, encoder_model, clustering_model, image)
-        if len(nodes) == 4 and len(edges) == 4:
+    # TODO convert to enumerate
+    for index in range(m):
+        image = image_list[index]
+        vertex_list, edge_list = get_graph(decoder_model, encoder_model, clustering_model, image)
+
+        if len(vertex_list) == 4 and len(edge_list) == 4:
             print('image no:', index)
-            nodes_set.extend(nodes)
-            edges_set.extend(edges)
+            vertex_matrix.extend(vertex_list)
+            edge_matrix.extend(edge_list)
 
-    nodes_set = np.array(nodes_set).reshape((-1, 4, channels_full))
-    edges_set = np.array(edges_set).reshape((-1, 4, 2))
+    vertex_matrix = np.array(vertex_matrix).reshape((-1, 4, channels_full))
+    edge_matrix = np.array(edge_matrix).reshape((-1, 4, 2))
 
-    m = len(nodes_set)
-    assert nodes_set.shape == (m, 4, channels_full)
-    assert edges_set.shape == (m, 4, 2)
+    m = len(vertex_matrix)
+    assert vertex_matrix.shape == (m, 4, channels_full)
+    assert edge_matrix.shape == (m, 4, 2)
 
     if saving:
-        np.save('data/graph_lines_set_v1_{}x4x{}.npy'.format(m, channels_full), nodes_set)
-        np.save('data/graph_edges_set_v1_{}x4x2.npy'.format(m), edges_set)
+        np.save('data/graph_lines_set_v1_{}x4x{}.npy'.format(m, channels_full), vertex_matrix)
+        np.save('data/graph_edges_set_v1_{}x4x2.npy'.format(m), edge_matrix)
 
     mapping_set = []
-    regions = utl.get_regions(region_count)
+    region_list = utl.get_regions(regions)
 
     for index in range(m):
-        nodes = nodes_set[index]
-        edges = edges_set[index]
+        vertex_list = vertex_matrix[index]
+        edge_list = edge_matrix[index]
 
-        adjacency_matrix = utl.get_adjacency_matrix_from_edges(node_count, edges)
-        region_matrix = utl.get_region_matrix(nodes, regions, show=True, debug=True)
+        adjacency_matrix = utl.get_adjacency_matrix_from_edges(vertices, edge_list)
+        region_matrix = utl.get_region_matrix(vertex_list, region_list, show=True, debug=True)
 
         row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
 
-        mapping = np.full((node_count, region_count), -1)
+        mapping = np.full((vertices, regions), -1)
         mapping[row_indexes, column_indexes] = node_indexes
 
         mapping_set.extend(mapping)
 
-    mapping_set = np.array(mapping_set).reshape((-1, 4, region_count))
-    assert mapping_set.shape == (m, 4, region_count)
+    mapping_set = np.array(mapping_set).reshape((-1, 4, regions))
+    assert mapping_set.shape == (m, 4, regions)
 
     if saving:
-        np.save('data/graph_mapping_set_v1_{}x4x{}.npy'.format(m, region_count), mapping_set)
+        np.save('data/graph_mapping_set_v1_{}x4x{}.npy'.format(m, regions), mapping_set)
 
 
 if __name__ == '__main__':

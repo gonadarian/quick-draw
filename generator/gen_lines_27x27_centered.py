@@ -1,25 +1,15 @@
-from PIL import Image, ImageDraw
 import numpy as np
+import libs.generators as gens
 
 
-dim = 27
-
-
-def get_img_array(x, y, show=False):
-    image = Image.new("L", (dim, dim), "black")
-
-    draw = ImageDraw.Draw(image)
+def line_drawer(draw, dim, params):
+    assert len(params) == 2
+    x, y = params
     draw.line((x, y, dim - 1 - x, dim - 1 - y), fill=255)
-    image_array = np.asarray(image)
-
-    if show:
-        print(image_array)
-        image.show()
-
-    return image_array
 
 
 def main():
+    dim = 27
     center = dim // 2
     images = []
 
@@ -27,7 +17,9 @@ def main():
         for y in range(dim):
             if x == center and y == center:
                 break
-            image = get_img_array(x, y, show=False)
+
+            params = [x, y]
+            image = gens.draw_image(dim, params, drawer=line_drawer, show=False)
             images.append(image)
 
     images = np.array(images)

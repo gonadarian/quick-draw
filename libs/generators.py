@@ -1,4 +1,19 @@
 import numpy as np
+from PIL import Image, ImageDraw
+
+
+def draw_image(dim, params, drawer, show=False):
+    image = Image.new("L", (dim, dim), "black")
+
+    draw = ImageDraw.Draw(image)
+    drawer(draw, dim, params)
+    image_array = np.asarray(image)
+
+    if show:
+        print(image_array)
+        image.show()
+
+    return image_array
 
 
 def get_shift_matrix(dim):
