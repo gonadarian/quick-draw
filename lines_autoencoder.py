@@ -2,50 +2,50 @@ import time as t
 import numpy as np
 import random as rand
 import libs.models as mdls
-import libs.datasets as ds
+# import libs.datasets as ds
 import matplotlib.pyplot as plt
+from libs.concepts import Concept
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 dim = 27
 
-preload = True
-train = not preload
+train = True
+preload = not train
 predict = True
 analyze_1 = False
 analyze_2 = False
 
 
-def prediction(autoencoder_model, x):
-    n = 10
+def prediction(autoencoder_model, x, n=10):
     m = x.shape[0]
 
-    decoded_images = autoencoder_model.predict(x)
-    indexes = rand.sample(range(1, m), n)
+    predicted_list = autoencoder_model.predict(x)
+    indices = rand.sample(range(1, m), n)
     plt.figure(figsize=(30, 4))
 
     for i in range(n):
-        img_idx = indexes[i]
+        index = indices[i]
 
         # display original
         ax = plt.subplot(3, n, i + 1)
-        img_original = x[img_idx].reshape(dim, dim)
-        plt.imshow(img_original)
+        original = x[index].reshape(dim, dim)
+        plt.imshow(original)
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
         # display reconstruction
         ax = plt.subplot(3, n, i + 1 + n)
-        image_reconstruct = decoded_images[img_idx].reshape(dim, dim)
-        plt.imshow(image_reconstruct)
+        predicted = predicted_list[index].reshape(dim, dim)
+        plt.imshow(predicted)
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
         # display reconstruction
         ax = plt.subplot(3, n, i + 1 + 2 * n)
-        plt.imshow(img_original - image_reconstruct)
+        plt.imshow(original - predicted)
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
@@ -85,32 +85,37 @@ def analysis_2(autoencoder_model):
         sample[0, 0, 0, 0] += 0.1
 
 
-def main():
+def main(concept):
 
     if preload:
-        autoencoder_model = mdls.load_autoencoder_model_27x27()
+        autoencoder_model = concept.model_loader()  # mdls.load_autoencoder_model_27x27()
 
     else:
-        autoencoder_model = mdls.get_model_autoencoder_27x27()
+        autoencoder_model = concept.model_creator()  # mdls.get_model_autoencoder_27x27()
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
     autoencoder_model.summary()
 
-    x = ds.load_images_line_27x27_centered()
+    x = concept.dataset_loader()  # ds.load_images_line_27x27_centered()
 
     if train:
+        batch_size = 64
+        epochs = 10000
+        timestamp = int(t.time())
+
+        model_name = 'conv-autoencoder-{}-{}'.format(concept.code, timestamp)
+        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
+        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.5f}')
+
         autoencoder_model.fit(
             x, x,
-            epochs=1000,
-            batch_size=64,
+            epochs=epochs,
+            batch_size=batch_size,
             shuffle=True,
             validation_data=(x, x),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs\Conv Autoencoder v4.b64.{}'.format(int(t.time()))),
-                ModelCheckpoint(
-                    'models\lines\model_autoencoder_v3.{epoch:04d}-{val_loss:.5f}.hdf5',
-                    monitor='val_loss', verbose=0, save_best_only=True,
-                    save_weights_only=False, mode='auto', period=10)
+                TensorBoard(log_dir=log_dir),
+                ModelCheckpoint(filepath=filepath, save_best_only=True, period=10)
             ]
         )
 
@@ -127,5 +132,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(Concept.LINE)
     print('end')

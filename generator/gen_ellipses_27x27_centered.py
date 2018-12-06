@@ -3,18 +3,14 @@ import libs.generators as gens
 
 
 def ellipse_drawer(draw, dim, params):
-    assert len(params) == 3
-    x, y, a = params
-    mid = (dim - 1) // 2
-    draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), fill=255)
+    assert len(params) == 2
+    x, y = params
+    draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), outline=255)
 
 
 def main():
     dim = 27
-    center = dim // 2
-
-    params = [5, 10, 0]
-    image = gens.draw_image(dim, params, drawer=ellipse_drawer, show=True)
+    center = dim // 2 - 1
 
     images = []
 
@@ -30,7 +26,7 @@ def main():
     images = np.array(images)
     print('shape:', images.shape)
 
-    np.save('data\lines_27x27\line_27x27_centered_v1_{}x{}x{}.npy'.format(len(images), dim, dim), images)
+    np.save('data\ellipse\ellipse_27x27_centered_v1_{}x{}x{}.npy'.format(len(images), dim, dim), images)
 
 
 if __name__ == '__main__':
