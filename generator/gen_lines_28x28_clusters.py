@@ -12,7 +12,7 @@ def main():
     assert samples.shape == (7234, 28, 28, 1)
     m = samples.shape[0]
 
-    encoder_model = mdls.load_encoder_line_model()
+    matrix_encoder_model = mdls.load_matrix_encoder_line_model()
 
     pairs_per_sample = 5  # total is twice the size, half for positive pairs, half for negative ones
 
@@ -24,7 +24,7 @@ def main():
             print('\tencoding is at', i)
 
         sample = samples[i, :, :, 0]
-        encoding_list = utl.get_embeddings(encoder_model, sample, show=False)
+        encoding_list = utl.get_embeddings(matrix_encoder_model, sample, show=False)
         encoding_lists.append(encoding_list)
 
     print('start pairing...')

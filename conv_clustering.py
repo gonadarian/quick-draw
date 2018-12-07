@@ -67,10 +67,10 @@ def main():
         indexes = np.random.randint(m, size=2)
         samples = x_image[indexes]
 
-        encoder_model = mdls.load_encoder_line_model()
+        matrix_encoder_model = mdls.load_matrix_encoder_line_model()
 
-        y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
-        y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])
+        y_image_1 = utl.get_embeddings(matrix_encoder_model, samples[0, :, :, 0])
+        y_image_2 = utl.get_embeddings(matrix_encoder_model, samples[1, :, :, 0])
         y_mix = np.concatenate((y_image_1, y_image_2), axis=0)
         m_mix = len(y_mix)
         assert y_mix.shape == (m_mix, 17)

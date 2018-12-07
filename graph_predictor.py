@@ -40,11 +40,11 @@ def main():
 
     assert sample.shape == (dim, dim)
 
-    decoder_model = mdls.load_decoder_line_model()
-    encoder_model = mdls.load_encoder_line_model()
+    _, decoder_model = mdls.load_autoencoder_line_model()
+    matrix_encoder_model = mdls.load_matrix_encoder_line_model()
     clustering_model = mdls.load_clustering_line_model()
 
-    embeddings = utl.get_embeddings(encoder_model, sample, threshold=embedding_threshold, show=False)
+    embeddings = utl.get_embeddings(matrix_encoder_model, sample, threshold=embedding_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
     clusters = utl.extract_clusters(cluster_matrix)
 

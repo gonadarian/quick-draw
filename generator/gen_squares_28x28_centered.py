@@ -79,14 +79,14 @@ def main():
     if saving:
         np.save('data\square_originals_v1_{}x28x28.npy'.format(m), image_list)
 
-    decoder_model = mdls.load_decoder_line_model()
-    encoder_model = mdls.load_encoder_line_model()
+    _, decoder_model = mdls.load_autoencoder_line_model()
+    matrix_encoder_model = mdls.load_matrix_encoder_line_model()
     clustering_model = mdls.load_clustering_line_model()
 
     if testing:
         test_index = 165  # 166  # 142  # 127  # 100  #73  # 26
         image = image_list[test_index]
-        vertex_list, edge_list = get_graph(decoder_model, encoder_model, clustering_model, image, show=True)
+        vertex_list, edge_list = get_graph(decoder_model, matrix_encoder_model, clustering_model, image, show=True)
 
         print('image no:', test_index)
         print('\tlines:', len(vertex_list))
@@ -100,7 +100,7 @@ def main():
     # TODO convert to enumerate
     for index in range(m):
         image = image_list[index]
-        vertex_list, edge_list = get_graph(decoder_model, encoder_model, clustering_model, image)
+        vertex_list, edge_list = get_graph(decoder_model, matrix_encoder_model, clustering_model, image)
 
         if len(vertex_list) == 4 and len(edge_list) == 4:
             print('image no:', index)

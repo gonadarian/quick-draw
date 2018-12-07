@@ -12,7 +12,7 @@ dim = 27
 channels = 14
 channels_full = 17
 
-preload = False
+preload = True
 train = not preload
 predict = True
 analyze = False
@@ -20,20 +20,20 @@ analyze = False
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
 
 
-def prediction(encoder_model, x):
+def prediction(concept, matrix_encoder_model, x):
     predict_single = False
     predict_multiple = True
 
-    decoder_model = mdls.load_decoder_line_model_27x27()
+    _, decoder_model = concept.model_autoencoder()
 
     if predict_single:
-        prediction_single(decoder_model, encoder_model, x)
+        prediction_single(decoder_model, matrix_encoder_model, x)
 
     if predict_multiple:
-        prediction_multiple(decoder_model, encoder_model, x)
+        prediction_multiple(decoder_model, matrix_encoder_model, x)
 
 
-def prediction_multiple(decoder_model, encoder_model, x):
+def prediction_multiple(decoder_model, matrix_encoder_model, x):
     n = 10
     n_clusters = 2
     fig_rows = n_clusters + 1
@@ -44,7 +44,7 @@ def prediction_multiple(decoder_model, encoder_model, x):
 
     for i in range(n):
         sample = x[indexes[i], :, :, 0]
-        embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, show=False)
+        embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, show=False)
         images = utl.decode_clustered_embeddings(decoder_model, embeddings, n_clusters, dim=dim, show=False)
 
         # display original
@@ -66,11 +66,11 @@ def prediction_multiple(decoder_model, encoder_model, x):
     plt.show()
 
 
-def prediction_single(decoder_model, encoder_model, x):
+def prediction_single(decoder_model, matrix_encoder_model, x):
     idx = rand.randint(0, x.shape[0])
     print('random index:', idx)
     sample = x[idx, :, :, 0]
-    embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, show=True)
+    embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, show=True)
     utl.decode_clustered_embeddings(decoder_model, embeddings, 1, True)
 
     if analyze:
@@ -90,11 +90,11 @@ def main(concept):
     x, y, m = concept.dataset_mixed()
 
     if preload:
-        encoder_model = concept.model_matrix_encoder()
+        matrix_encoder_model = concept.model_matrix_encoder()
 
     else:
-        encoder_model = concept.model_matrix_encoder_creator()
-        encoder_model.compile(optimizer='adam', loss='mean_squared_error')
+        matrix_encoder_model = concept.model_matrix_encoder_creator()
+        matrix_encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
     if train:
         epochs = 1000
@@ -105,7 +105,7 @@ def main(concept):
         log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
         filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
 
-        encoder_model.fit(
+        matrix_encoder_model.fit(
             x, y,
             epochs=epochs,
             batch_size=batch_size,
@@ -117,7 +117,7 @@ def main(concept):
             ])
 
     if predict:
-        prediction(encoder_model, x)
+        prediction(concept, matrix_encoder_model, x)
 
 
 if __name__ == '__main__':

@@ -14,43 +14,16 @@ def load(filename, custom_objects=None):
     return model
 
 
-# TODO refactor to return both autoencoder, encoder and decoder models
+# TODO refactor to return encoder model as well
 def load_autoencoder_line_model():
     autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
-    return autoencoder_model
-
-
-# TODO refactor to return both autoencoder, encoder and decoder models
-def load_autoencoder_line_model_27x27():
-    autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
-    return autoencoder_model
-
-
-def load_autoencoder_ellipse_model_27x27():
-    autoencoder_model = load('ellipse/conv-autoencoder-ellipse-1544114775-e0980-0.00196.hdf5')
-    return autoencoder_model
-
-
-def load_encoder_line_model():
-    encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
-    return encoder_model
-
-
-def load_encoder_line_model_27x27():
-    encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
-    return encoder_model
-
-
-def load_decoder_line_model():
-    autoencoder_model = load_autoencoder_line_model()
     decoder_model = extract_decoder_model(autoencoder_model)
-    return decoder_model
+    return autoencoder_model, decoder_model
 
 
-def load_decoder_line_model_27x27():
-    autoencoder_model = load_autoencoder_line_model_27x27()
-    decoder_model = extract_decoder_model(autoencoder_model)
-    return decoder_model
+def load_matrix_encoder_line_model():
+    matrix_encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
+    return matrix_encoder_model
 
 
 def load_clustering_line_model():
@@ -58,9 +31,33 @@ def load_clustering_line_model():
     return clustering_model
 
 
+# TODO refactor to return encoder model as well
+def load_autoencoder_line_model_27x27():
+    autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
+    decoder_model = extract_decoder_model(autoencoder_model)
+    return autoencoder_model, decoder_model
+
+
+def load_matrix_encoder_line_model_27x27():
+    matrix_encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
+    return matrix_encoder_model
+
+
 def load_clustering_line_model_27x27():
     clustering_model = load('lines_27x27/model_clustering_v1-097-0.002884.hdf5')
     return clustering_model
+
+
+# TODO refactor to return encoder model as well
+def load_autoencoder_ellipse_model_27x27():
+    autoencoder_model = load('ellipse/conv-autoencoder-ellipse-1544114775-e0980-0.00196.hdf5')
+    decoder_model = extract_decoder_model(autoencoder_model)
+    return autoencoder_model, decoder_model
+
+
+def load_matrix_encoder_ellipse_model_27x27():
+    matrix_encoder_model = load('ellipse/conv-matrix-encoder-ellipse-1544188766-e0007-0.009631.hdf5')
+    return matrix_encoder_model
 
 
 def load_graph_autoencoder_model(vertices, regions, version=1):
@@ -86,41 +83,27 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
     return autoencoder_model
 
 
-# TODO refactor to return both autoencoder, encoder and decoder models
-def create_autoencoder_model():
+def extract_decoder_model(autoencoder, show=False):
+    # remove layers from encoder part of auto-encoder
+    for i in range(9):
+        autoencoder.layers.pop(0)
 
-    input_img = Input(shape=(28, 28, 1))
+    # add new input layer to represent encoded state with 14 numbers
+    x = Input(shape=(1, 1, 14))
 
-    x = Conv2D(4, (3, 3), activation='relu', padding='valid')(input_img)
-    x = Conv2D(8, (5, 5), activation='relu', padding='valid')(x)
-    x = Conv2D(12, (7, 7), activation='relu', padding='valid')(x)
-    x = Conv2D(16, (7, 7), activation='relu', padding='valid')(x)
-    x = Conv2D(20, (5, 5), activation='relu', padding='valid')(x)
-    x = Conv2D(24, (3, 3), activation='relu', padding='valid')(x)
-    x = Conv2D(28, (4, 4), activation='relu', padding='valid')(x)
-    x = Conv2D(14, (1, 1), activation='tanh', padding='valid')(x)
+    # relink all the layers again to include new input one in the chain
+    y = x
+    layers = [layer for layer in autoencoder.layers]
+    for i in range(len(layers)):
+        y = layers[i](y)
 
-    encoded = x
+    # create new model with this new layer chain
+    decoder = Model(inputs=x, outputs=y)
 
-    x = Conv2D(20, (1, 1), activation='relu', padding='same')(encoded)
-    x = UpSampling2D((3, 3))(x)
-    x = Conv2D(24, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(28, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((3, 3))(x)
-    x = Conv2D(24, (3, 3), activation='relu', padding='valid')(x)
-    x = Conv2D(20, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(12, (7, 7), activation='relu', padding='same')(x)
-    x = Conv2D(8, (7, 7), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(4, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
+    if show:
+        decoder.summary()
 
-    decoded = x
-
-    model = Model(input_img, decoded)
-    return model
+    return decoder
 
 
 # TODO refactor to return both autoencoder, encoder and decoder models
@@ -157,30 +140,6 @@ def create_autoencoder_model_27x27():
     model = Model(input_image, output_image)
 
     return model
-
-
-# TODO deprecate in favour of the above
-def extract_decoder_model(autoencoder, show=False):
-    # remove layers from encoder part of auto-encoder
-    for i in range(9):
-        autoencoder.layers.pop(0)
-
-    # add new input layer to represent encoded state with 14 numbers
-    x = Input(shape=(1, 1, 14))
-
-    # relink all the layers again to include new input one in the chain
-    y = x
-    layers = [layer for layer in autoencoder.layers]
-    for i in range(len(layers)):
-        y = layers[i](y)
-
-    # create new model with this new layer chain
-    decoder = Model(inputs=x, outputs=y)
-
-    if show:
-        decoder.summary()
-
-    return decoder
 
 
 def create_encoder_model():
