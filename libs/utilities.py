@@ -35,16 +35,19 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     return embeddings
 
 
-def calculate_cluster_matrix(model, embeddings):
+def calculate_cluster_matrix(clustering_model, embeddings):
     n = embeddings.shape[0]
     assert embeddings.shape == (n, 17)
 
+    # combine each of N embeddings with all other embeddings in a N*N matrix
     x = np.zeros((n, n, 34))
+    # use broadcasting to send embeddings as columns and then as rows
     x[:, :, :17] = embeddings.reshape((n, 1, 17))
     x[:, :, 17:] = embeddings.reshape((1, n, 17))
+    # each cell is now combination of two embeddings
     x = x.reshape((n ** 2, 34))
 
-    y = model.predict(x)
+    y = clustering_model.predict(x)
     assert y.shape == (n ** 2, 1)
     y = y.reshape((n, n))
 

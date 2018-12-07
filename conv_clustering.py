@@ -1,91 +1,77 @@
 import time as t
 import numpy as np
 import random as rand
-import libs.models as mdls
 import libs.utilities as utl
+from libs.concepts import Concept
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 dim = 27
-preload = False
-train = not preload
-predict = False
-cluster = False
+
+train = False
+preload = not train
+predict = True
 
 rand.seed(1)
 np.random.seed(1)
 
 
-def get_data():
-    # TODO use datasets load method
-    x = np.load('generator\data\lines_27x27\line_27x27_clusters_v1_5815x10x2x17.npy')
-    assert x.shape == (5815, 10, 2, 17)
+def prediction(concept, clustering_model):
+    x, _, m = concept.dataset_shifted()
+    indices = np.random.randint(m, size=2)
+    x_pair = x[indices]
 
-    x = x.reshape((58150, 34))
-    m = x.shape[0]
+    matrix_encoder_model = concept.model_matrix_encoder()
 
-    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10).reshape((m, 1))
-    assert y.shape == (58150, 1)
+    embeddings_1 = utl.get_embeddings(matrix_encoder_model, x_pair[0, :, :, 0], dim=dim)
+    embeddings_2 = utl.get_embeddings(matrix_encoder_model, x_pair[1, :, :, 0], dim=dim)
+    embeddings_mix = np.concatenate((embeddings_1, embeddings_2), axis=0)
+    assert embeddings_mix.shape[1:] == (17,)
 
-    return x, y
+    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings_mix)
+    clusters = utl.extract_clusters(cluster_matrix)
+    print(clusters)
 
 
-def main():
-    clustering_model = None
+def main(concept):
 
     if preload:
-        clustering_model = mdls.load_clustering_line_model()
+        clustering_model = concept.model_clustering()
 
-    elif train or predict:
-        clustering_model = mdls.create_clustering_model()
+    else:
+        clustering_model = concept.model_clustering_creator()
         clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
 
+    clustering_model.summary()
+
     if train:
-        x, y = get_data()
+        x, y, _ = concept.dataset_clustered()
+
+        epochs = 100
+        batch_size = 32
+        timestamp = int(t.time())
+
+        model_name = 'conv-clustering-{}-{}'.format(concept.code, timestamp)
+        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
+        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
+
         clustering_model.fit(
             x, y,
-            epochs=100,
-            batch_size=32,
+            epochs=epochs,
+            batch_size=batch_size,
             shuffle=True,
             validation_data=(x, y),
             callbacks=[
-                TensorBoard(log_dir='C:\Logs\Dense Clustering v1.b32.{}'.format(int(t.time()))),
-                ModelCheckpoint(
-                    'models\lines_27x27\model_clustering_v1-{epoch:03d}-{val_loss:.6f}.hdf5',
-                    monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+                TensorBoard(log_dir=log_dir),
+                ModelCheckpoint(filepath=filepath, save_best_only=True, period=10)
             ]
         )
 
-    cluster_matrix = None
-
     if predict:
-        # TODO use datasets load method
-        x_image = np.load('generator\data\lines_27x27\line_27x27_samples_v1_5815x27x27x1.npy')
-        assert x_image.shape == (5815, dim, dim, 1)
-        m = x_image.shape[0]
-
-        indexes = np.random.randint(m, size=2)
-        samples = x_image[indexes]
-
-        matrix_encoder_model = mdls.load_matrix_encoder_line_model()
-
-        y_image_1 = utl.get_embeddings(matrix_encoder_model, samples[0, :, :, 0])
-        y_image_2 = utl.get_embeddings(matrix_encoder_model, samples[1, :, :, 0])
-        y_mix = np.concatenate((y_image_1, y_image_2), axis=0)
-        m_mix = len(y_mix)
-        assert y_mix.shape == (m_mix, 17)
-
-        cluster_matrix = utl.calculate_cluster_matrix(clustering_model, y_mix)
-
-    if cluster:
-        # TODO use datasets load method
-        cluster_matrix = np.load('generator\data\cluster_matrix-square-36x36.npy')
-
-    if predict or cluster:
-        clusters = utl.extract_clusters(cluster_matrix)
-        print(clusters)
+        prediction(concept, clustering_model)
 
 
 if __name__ == '__main__':
-    main()
+    main(Concept.LINE)
+    main(Concept.ELLIPSE)
     print('end')

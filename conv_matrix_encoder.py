@@ -1,7 +1,6 @@
 import time as t
 import numpy as np
 import random as rand
-import libs.models as mdls
 import libs.utilities as utl
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
@@ -87,6 +86,7 @@ def analysis(embeddings):
 
 
 def main(concept):
+
     x, y, m = concept.dataset_mixed()
 
     if preload:
@@ -95,6 +95,8 @@ def main(concept):
     else:
         matrix_encoder_model = concept.model_matrix_encoder_creator()
         matrix_encoder_model.compile(optimizer='adam', loss='mean_squared_error')
+
+    matrix_encoder_model.summary()
 
     if train:
         epochs = 1000

@@ -26,11 +26,6 @@ def load_matrix_encoder_line_model():
     return matrix_encoder_model
 
 
-def load_clustering_line_model():
-    clustering_model = load('lines_28x28/model_dense_v1-088-0.001555.hdf5')
-    return clustering_model
-
-
 # TODO refactor to return encoder model as well
 def load_autoencoder_line_model_27x27():
     autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
@@ -43,8 +38,8 @@ def load_matrix_encoder_line_model_27x27():
     return matrix_encoder_model
 
 
-def load_clustering_line_model_27x27():
-    clustering_model = load('lines_27x27/model_clustering_v1-097-0.002884.hdf5')
+def load_clustering_line_model():
+    clustering_model = load('line/conv-clustering-line-1544195226-e0100-0.003500.hdf5')
     return clustering_model
 
 
@@ -58,6 +53,11 @@ def load_autoencoder_ellipse_model_27x27():
 def load_matrix_encoder_ellipse_model_27x27():
     matrix_encoder_model = load('ellipse/conv-matrix-encoder-ellipse-1544188766-e0007-0.009631.hdf5')
     return matrix_encoder_model
+
+
+def load_clustering_ellipse_model():
+    clustering_model = load('ellipse/conv-clustering-ellipse-1544196233-e0100-0.077261.hdf5')
+    return clustering_model
 
 
 def load_graph_autoencoder_model(vertices, regions, version=1):
@@ -142,7 +142,7 @@ def create_autoencoder_model_27x27():
     return model
 
 
-def create_encoder_model():
+def create_matrix_encoder_model():
     input_img = Input(shape=(28, 28, 1))
 
     x = Conv2D(4, (3, 3), activation='relu', padding='same')(input_img)
@@ -161,7 +161,7 @@ def create_encoder_model():
     return model
 
 
-def create_encoder_model_27x27():
+def create_matrix_encoder_model_27x27():
     input_image = Input(shape=(27, 27, 1))
 
     x = input_image

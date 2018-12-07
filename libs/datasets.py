@@ -49,6 +49,25 @@ def load_images_line_27x27_mixed():
     return x, y, m
 
 
+def load_images_line_27x27_clustered():
+    filename = 'line/line_clusters_1544187266_5815x10x2x17.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 5815
+    assert x.shape == (m, 10, 2, 17)
+
+    # TODO pair count, 10, should be a parameter of this method
+    x = x.reshape((m * 10, 34))
+    m = x.shape[0]
+
+    # TODO this code is used in more places, should be extracted
+    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10)
+    y = y.reshape((m, 1))
+    assert y.shape == (m, 1)
+
+    return x, y, m
+
+
 def load_images_ellipse_27x27_centered():
     x = load('ellipse/ellipse_centered_1544185820_2028x27x27.npy')
     m = x.shape[0]
@@ -86,6 +105,25 @@ def load_images_ellipse_27x27_mixed():
     filename = 'ellipse/ellipse_mixed_encodings_1544185490_8592x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
+def load_images_ellipse_27x27_clustered():
+    filename = 'ellipse/ellipse_clusters_1544193289_8592x10x2x17.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 8592
+    assert x.shape == (m, 10, 2, 17)
+
+    # TODO pair count, 10, should be a parameter of this method
+    x = x.reshape((m * 10, 34))
+    m = x.shape[0]
+
+    # TODO this code is used in more places, should be extracted
+    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10)
+    y = y.reshape((m, 1))
+    assert y.shape == (m, 1)
 
     return x, y, m
 
