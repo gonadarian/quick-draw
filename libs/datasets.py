@@ -26,6 +26,19 @@ def load_images_line_27x27_centered():
     return x
 
 
+def load_images_line_27x27_mixed():
+    filename = 'lines_27x27/line_27x27_mixed_samples_v1_5815x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'lines_27x27\line_27x27_mixed_encodings_v1_5815x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
 def load_images_ellipse_27x27_centered():
     x = load('ellipse/ellipse_27x27_centered_v1_2028x27x27.npy')
     assert x.shape == (2028, 27, 27)

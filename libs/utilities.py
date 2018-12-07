@@ -2,6 +2,7 @@ import math as m
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from scipy import spatial
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
@@ -81,6 +82,17 @@ def extract_clusters(cluster_matrix, debug=False):
             clusters.append(row_index_set)
 
     return clusters
+
+
+def show_distances(encodings):
+    n = encodings.shape[0]
+    distances = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            distances[i, j] = spatial.distance.cosine(encodings[i, :], encodings[j, :])
+
+    for idx in range(n):
+        print('\t'.join(list(map(lambda x: '{0:.3f}'.format(x), distances[idx, :]))), '\n')
 
 
 def show_elbow_curve(encodings, show=False):
