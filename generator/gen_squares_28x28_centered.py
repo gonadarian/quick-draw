@@ -79,9 +79,9 @@ def main():
     if saving:
         np.save('data\square_originals_v1_{}x28x28.npy'.format(m), image_list)
 
-    decoder_model = mdls.load_decoder_model()
-    encoder_model = mdls.load_encoder_model()
-    clustering_model = mdls.load_clustering_model()
+    decoder_model = mdls.load_decoder_line_model()
+    encoder_model = mdls.load_encoder_line_model()
+    clustering_model = mdls.load_clustering_line_model()
 
     if testing:
         test_index = 165  # 166  # 142  # 127  # 100  #73  # 26

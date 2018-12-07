@@ -13,7 +13,7 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     sample = sample.reshape((1, dim, dim, 1))
 
     # get prediction
-    prediction = encoder.predict(sample)
+    prediction = encoder.predict(sample)  # TODO predict for all samples at once, not once per sample
     assert prediction.shape == (1, dim, dim, 17)
     prediction = prediction[0]
 

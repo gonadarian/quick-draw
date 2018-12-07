@@ -21,7 +21,7 @@ def main():
     y = np.zeros((m, 28, 28, 16))
     print("y: ", y.shape)
 
-    autoencoder_model = mdls.load_autoencoder_model()
+    autoencoder_model = mdls.load_autoencoder_line_model()
     autoencoder_model.outputs = [autoencoder_model.layers[8].output]
 
     assert x.shape == (392, 28, 28, 1)

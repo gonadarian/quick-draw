@@ -80,9 +80,9 @@ def main():
 
     assert sample.shape == (dim, dim)
 
-    decoder_model = mdls.load_decoder_model_27x27()
-    encoder_model = mdls.load_encoder_model_27x27()
-    clustering_model = mdls.load_clustering_model_27x27()
+    decoder_model = mdls.load_decoder_line_model_27x27()
+    encoder_model = mdls.load_encoder_line_model_27x27()
+    clustering_model = mdls.load_clustering_line_model_27x27()
 
     embeddings = utl.get_embeddings(encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)

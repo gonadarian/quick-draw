@@ -24,7 +24,7 @@ def prediction(encoder_model, x):
     predict_single = False
     predict_multiple = True
 
-    decoder_model = mdls.load_decoder_model_27x27()
+    decoder_model = mdls.load_decoder_line_model_27x27()
 
     if predict_single:
         prediction_single(decoder_model, encoder_model, x)
@@ -90,11 +90,9 @@ def main(concept):
     x, y, m = concept.dataset_mixed()
 
     if preload:
-        # encoder_model = mdls.load_encoder_model_27x27()
         encoder_model = concept.model_matrix_encoder()
 
     else:
-        # encoder_model = mdls.create_encoder_model_27x27()
         encoder_model = concept.model_matrix_encoder_creator()
         encoder_model.compile(optimizer='adam', loss='mean_squared_error')
 
@@ -124,4 +122,5 @@ def main(concept):
 
 if __name__ == '__main__':
     main(Concept.LINE)
+    main(Concept.ELLIPSE)
     print('end')

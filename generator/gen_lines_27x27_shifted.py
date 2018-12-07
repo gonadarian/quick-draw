@@ -20,7 +20,7 @@ def main():
     m = x.shape[0]
     print("x: ", x.shape)
 
-    autoencoder_model = mdls.load_autoencoder_model_27x27()
+    autoencoder_model = mdls.load_autoencoder_line_model_27x27()
     autoencoder_model.outputs = [autoencoder_model.layers[8].output]
 
     x_list = []

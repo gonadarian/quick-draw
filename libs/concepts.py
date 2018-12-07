@@ -7,10 +7,10 @@ class Concept(Enum):
 
     LINE = (
         'line',
-        mdls.get_model_autoencoder_27x27,
-        mdls.load_autoencoder_model_27x27,
+        mdls.create_autoencoder_model_27x27,
+        mdls.load_autoencoder_line_model_27x27,
         mdls.create_encoder_model_27x27,
-        mdls.load_encoder_model_27x27,
+        mdls.load_encoder_line_model_27x27,
         ds.load_images_line_27x27_centered,
         ds.load_images_line_27x27_shifted,
         ds.load_images_line_27x27_mixed,
@@ -18,9 +18,9 @@ class Concept(Enum):
 
     ELLIPSE = (
         'ellipse',
-        mdls.get_model_autoencoder_27x27,
+        mdls.create_autoencoder_model_27x27,
         mdls.load_autoencoder_ellipse_model_27x27,
-        None,
+        mdls.create_encoder_model_27x27,
         None,
         ds.load_images_ellipse_27x27_centered,
         ds.load_images_ellipse_27x27_shifted,

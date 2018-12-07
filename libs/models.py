@@ -14,13 +14,13 @@ def load(filename, custom_objects=None):
 
 
 # TODO refactor to return both autoencoder, encoder and decoder models
-def load_autoencoder_model():
+def load_autoencoder_line_model():
     autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
     return autoencoder_model
 
 
 # TODO refactor to return both autoencoder, encoder and decoder models
-def load_autoencoder_model_27x27():
+def load_autoencoder_line_model_27x27():
     autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
     return autoencoder_model
 
@@ -30,34 +30,34 @@ def load_autoencoder_ellipse_model_27x27():
     return autoencoder_model
 
 
-def load_encoder_model():
+def load_encoder_line_model():
     encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
     return encoder_model
 
 
-def load_encoder_model_27x27():
+def load_encoder_line_model_27x27():
     encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
     return encoder_model
 
 
-def load_decoder_model():
-    autoencoder_model = load_autoencoder_model()
-    decoder_model = gen_decoder_model(autoencoder_model)
+def load_decoder_line_model():
+    autoencoder_model = load_autoencoder_line_model()
+    decoder_model = extract_decoder_model(autoencoder_model)
     return decoder_model
 
 
-def load_decoder_model_27x27():
-    autoencoder_model = load_autoencoder_model_27x27()
-    decoder_model = gen_decoder_model(autoencoder_model)
+def load_decoder_line_model_27x27():
+    autoencoder_model = load_autoencoder_line_model_27x27()
+    decoder_model = extract_decoder_model(autoencoder_model)
     return decoder_model
 
 
-def load_clustering_model():
+def load_clustering_line_model():
     clustering_model = load('lines_28x28/model_dense_v1-088-0.001555.hdf5')
     return clustering_model
 
 
-def load_clustering_model_27x27():
+def load_clustering_line_model_27x27():
     clustering_model = load('lines_27x27/model_clustering_v1-097-0.002884.hdf5')
     return clustering_model
 
@@ -86,7 +86,7 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
 
 
 # TODO refactor to return both autoencoder, encoder and decoder models
-def get_model_autoencoder():
+def create_autoencoder_model():
 
     input_img = Input(shape=(28, 28, 1))
 
@@ -123,7 +123,7 @@ def get_model_autoencoder():
 
 
 # TODO refactor to return both autoencoder, encoder and decoder models
-def get_model_autoencoder_27x27():
+def create_autoencoder_model_27x27():
     input_image = Input(shape=(27, 27, 1))
 
     encoding = input_image
@@ -159,7 +159,7 @@ def get_model_autoencoder_27x27():
 
 
 # TODO deprecate in favour of the above
-def gen_decoder_model(autoencoder, show=False):
+def extract_decoder_model(autoencoder, show=False):
     # remove layers from encoder part of auto-encoder
     for i in range(9):
         autoencoder.layers.pop(0)
@@ -244,133 +244,6 @@ def absolute_loss(vector):
     loss = k.mean(vector)
     assert loss.shape == ()
     return loss
-
-
-# TODO remove
-def create_graph_autoencoder_model_legacy(node_count, encoding_dim, region_count, version=1):
-    versions = {
-        1: _create_graph_autoencoder_model_v1,
-        2: _create_graph_autoencoder_model_v2,
-        3: _create_graph_autoencoder_model_v3,
-    }
-    create_model = versions[version]
-    model = create_model(node_count, encoding_dim, region_count)
-
-    return model
-
-
-# TODO remove
-def _create_graph_autoencoder_model_v1(node_count, encoding_dim, region_count):
-    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
-    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
-
-    encoding = input_nodes
-
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_1')([encoding, input_graph])
-    encoding = Dense(20, activation='relu', name='Dense_Enc_1')(encoding)
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_2')([encoding, input_graph])
-    encoding = Dense(26, activation='relu', name='Dense_Enc_2')(encoding)
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_3')([encoding, input_graph])
-    encoding = Dense(32, activation='relu', name='Dense_Enc_3')(encoding)
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_4')([encoding, input_graph])
-    encoding = Dense(26, activation='relu', name='Dense_Enc_4')(encoding)
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_5')([encoding, input_graph])
-    encoding = Dense(20, activation='relu', name='Dense_Enc_5')(encoding)
-    encoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Enc_6')([encoding, input_graph])
-    encoding = Dense(14, activation='tanh', name='Dense_Enc_6')(encoding)
-
-    encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
-    decoding = encoding
-    decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
-
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_1')([decoding, input_graph])
-    decoding = Dense(20, activation='relu', name='Dense_Dec_1')(decoding)
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_2')([decoding, input_graph])
-    decoding = Dense(26, activation='relu', name='Dense_Dec_2')(decoding)
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_3')([decoding, input_graph])
-    decoding = Dense(32, activation='relu', name='Dense_Dec_3')(decoding)
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_4')([decoding, input_graph])
-    decoding = Dense(26, activation='relu', name='Dense_Dec_4')(decoding)
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_5')([decoding, input_graph])
-    decoding = Dense(20, activation='relu', name='Dense_Dec_5')(decoding)
-    decoding = Lambda(ls.lambda_graph2col, ls.lambda_graph2col_shape, name='Graph_Dec_6')([decoding, input_graph])
-    decoding = Dense(14, activation='tanh', name='Dense_Dec_6')(decoding)
-
-    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(absolute_loss(variance))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    return model
-
-
-# TODO remove
-def _create_graph_autoencoder_model_v2(node_count, encoding_dim, region_count):
-    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
-    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
-
-    encoding = input_nodes
-
-    encoding = GraphConv(20, name='GraphConv_Enc_1')([encoding, input_graph])
-    encoding = GraphConv(26, name='GraphConv_Enc_2')([encoding, input_graph])
-    encoding = GraphConv(32, name='GraphConv_Enc_3')([encoding, input_graph])
-    encoding = GraphConv(26, name='GraphConv_Enc_4')([encoding, input_graph])
-    encoding = GraphConv(20, name='GraphConv_Enc_5')([encoding, input_graph])
-    encoding = GraphConv(14, activation='tanh', name='GraphConv_Enc_6')([encoding, input_graph])
-
-    encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
-    decoding = encoding
-    decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
-
-    decoding = GraphConv(20, name='GraphConv_Dec_1')([decoding, input_graph])
-    decoding = GraphConv(26, name='GraphConv_Dec_2')([decoding, input_graph])
-    decoding = GraphConv(32, name='GraphConv_Dec_3')([decoding, input_graph])
-    decoding = GraphConv(26, name='GraphConv_Dec_4')([decoding, input_graph])
-    decoding = GraphConv(20, name='GraphConv_Dec_5')([decoding, input_graph])
-    decoding = GraphConv(14, activation='tanh', name='GraphConv_Dec_6')([decoding, input_graph])
-
-    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(absolute_loss(variance))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    return model
-
-
-# TODO remove
-def _create_graph_autoencoder_model_v3(node_count, encoding_dim, region_count):
-    input_graph = Input(shape=(node_count, region_count), dtype='int32', name='Input_Graph')
-    input_nodes = Input(shape=(node_count, encoding_dim), name='Input_Nodes')
-
-    with k.name_scope('Prepare'):
-        nodes_indices, column_indices = Graph2Col(name='Graph2Col')(input_graph)
-
-    encoding = input_nodes
-
-    with tf.name_scope('Encoder'):
-        encoding = GraphConvV2(encoding_dim+6, name='GraphConv_Enc_1')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(encoding_dim+12, name='GraphConv_Enc_2')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(encoding_dim+18, name='GraphConv_Enc_3')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(encoding_dim+12, name='GraphConv_Enc_4')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(encoding_dim+6, name='GraphConv_Enc_5')([encoding, nodes_indices, column_indices])
-        encoding = GraphConvV2(encoding_dim, activation='tanh', name='GraphConv_Enc_6')([encoding, nodes_indices, column_indices])
-
-    with tf.name_scope('Embedding'):
-        encoding, variance = Lambda(ls.lambda_moments, ls.lambda_moments_shape, name='Encoding_Moments')(encoding)
-        decoding = encoding
-        decoding = Lambda(ls.lambda_repeat, ls.lambda_repeat_shape, name='Encoding_Repeats')(decoding)
-
-    with tf.name_scope('Decoder'):
-        decoding = GraphConvV2(encoding_dim+6, name='GraphConv_Dec_1')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(encoding_dim+12, name='GraphConv_Dec_2')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(encoding_dim+18, name='GraphConv_Dec_3')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(encoding_dim+12, name='GraphConv_Dec_4')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(encoding_dim+6, name='GraphConv_Dec_5')([decoding, nodes_indices, column_indices])
-        decoding = GraphConvV2(encoding_dim, activation='tanh', name='GraphConv_Dec_6')([decoding, nodes_indices, column_indices])
-
-    model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(absolute_loss(variance))
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae', 'acc'])
-
-    return model
 
 
 def create_graph_autoencoder_model(units_list, node_count, region_count):

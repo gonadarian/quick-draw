@@ -1,7 +1,9 @@
+import time as t
 import numpy as np
 import random as rand
-import libs.models as mdls
 import libs.utilities as utl
+from libs.concepts import Concept
+
 
 dim = 27
 channels_full = 17
@@ -9,13 +11,10 @@ channels_full = 17
 rand.seed(1)
 
 
-def main():
-    # TODO use datasets load method
-    samples = np.load('data\lines_27x27\line_27x27_samples_v1_5815x27x27x1.npy')
-    assert samples.shape == (5815, dim, dim, 1)
-    m = samples.shape[0]
+def main(concept):
 
-    encoder_model = mdls.load_encoder_line_model_27x27()
+    samples, _, m = concept.dataset_shifted()
+    encoder_model = concept.model_matrix_encoder()
 
     # total is twice the size, half for positive pairs, half for negative ones
     pairs_per_sample = 5
@@ -57,10 +56,14 @@ def main():
         pairs[i, pairs_per_sample:, 0, :] = encodings[pair_indexes]
         pairs[i, pairs_per_sample:, 1, :] = other_encodings[other_pair_indexes]
 
-    np.save('data\lines_27x27\line_27x27_clusters_v1_{}x10x2x{}.npy'.format(m, channels_full), pairs)
-    print('saved data', m)
+    timestamp = int(t.time())
+    filename = 'data/{}/{}_clusters_{}_{}x{}x2x{}.npy'
+    filename = filename.format(concept.code, concept.code, timestamp, m, pairs_per_sample * 2, channels_full)
+    np.save(filename, pairs)
+
+    print('saved data', pairs.shape)
 
 
 if __name__ == '__main__':
-    main()
+    main(Concept.LINE)
     print('end')

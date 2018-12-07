@@ -34,7 +34,7 @@ def main():
     clustering_model = None
 
     if preload:
-        clustering_model = mdls.load_clustering_model()
+        clustering_model = mdls.load_clustering_line_model()
 
     elif train or predict:
         clustering_model = mdls.create_clustering_model()
@@ -67,7 +67,7 @@ def main():
         indexes = np.random.randint(m, size=2)
         samples = x_image[indexes]
 
-        encoder_model = mdls.load_encoder_model()
+        encoder_model = mdls.load_encoder_line_model()
 
         y_image_1 = utl.get_embeddings(encoder_model, samples[0, :, :, 0])
         y_image_2 = utl.get_embeddings(encoder_model, samples[1, :, :, 0])

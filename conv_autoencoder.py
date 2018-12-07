@@ -65,7 +65,7 @@ def analysis_1(autoencoder_model, x):
 
 
 def analysis_2(autoencoder_model):
-    decoder_model = mdls.gen_decoder_model(autoencoder_model, show=True)
+    decoder_model = mdls.extract_decoder_model(autoencoder_model, show=True)
 
     # this is a 14-number encoding for one of the lines in the test set
     sample = np.array([[[
@@ -88,15 +88,15 @@ def analysis_2(autoencoder_model):
 def main(concept):
 
     if preload:
-        autoencoder_model = concept.model_loader()  # mdls.load_autoencoder_model_27x27()
+        autoencoder_model = concept.model_loader()
 
     else:
-        autoencoder_model = concept.model_creator()  # mdls.get_model_autoencoder_27x27()
+        autoencoder_model = concept.model_creator()
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
     autoencoder_model.summary()
 
-    x = concept.dataset_loader()  # ds.load_images_line_27x27_centered()
+    x = concept.dataset_loader()
 
     if train:
         epochs = 1000
