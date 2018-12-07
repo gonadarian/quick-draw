@@ -9,7 +9,7 @@ def load(filename):
 
 
 def load_images_line_27x27_centered():
-    x = load('line/line_centered_1544186065_364x27x27.npy')
+    x = load('line/line-centered-1544186065-364x27x27.npy')
     m = x.shape[0]
     assert m == 364
     assert x.shape == (m, 27, 27)
@@ -22,13 +22,13 @@ def load_images_line_27x27_centered():
 
 
 def load_images_line_27x27_shifted():
-    filename = 'line/line_shifted_samples_1544171724_5815x27x27x1.npy'
+    filename = 'line/line-shifted-samples-1544171724-5815x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 5815
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'line/line_shifted_encodings_1544171724_5815x27x27x17.npy'
+    filename = 'line/line-shifted-encodings-1544171724-5815x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -36,13 +36,13 @@ def load_images_line_27x27_shifted():
 
 
 def load_images_line_27x27_mixed():
-    filename = 'line/line_mixed_samples_1544185269_5815x27x27x1.npy'
+    filename = 'line/line-mixed-samples-1544185269-5815x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 5815
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'line/line_mixed_encodings_1544185269_5815x27x27x17.npy'
+    filename = 'line/line-mixed-encodings-1544185269-5815x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -50,7 +50,7 @@ def load_images_line_27x27_mixed():
 
 
 def load_images_line_27x27_clustered():
-    filename = 'line/line_clusters_1544187266_5815x10x2x17.npy'
+    filename = 'line/line-clusters-1544187266-5815x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 5815
@@ -69,7 +69,7 @@ def load_images_line_27x27_clustered():
 
 
 def load_images_ellipse_27x27_centered():
-    x = load('ellipse/ellipse_centered_1544185820_2028x27x27.npy')
+    x = load('ellipse/ellipse-centered-1544185820-2028x27x27.npy')
     m = x.shape[0]
     assert m == 2028
     assert x.shape == (m, 27, 27)
@@ -82,13 +82,13 @@ def load_images_ellipse_27x27_centered():
 
 
 def load_images_ellipse_27x27_shifted():
-    filename = 'ellipse/ellipse_shifted_samples_1544172002_8592x27x27x1.npy'
+    filename = 'ellipse/ellipse-shifted-samples-1544172002-8592x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 8592
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'ellipse/ellipse_shifted_encodings_1544172002_8592x27x27x17.npy'
+    filename = 'ellipse/ellipse-shifted-encodings-1544172002-8592x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -96,13 +96,13 @@ def load_images_ellipse_27x27_shifted():
 
 
 def load_images_ellipse_27x27_mixed():
-    filename = 'ellipse/ellipse_mixed_samples_1544185490_8592x27x27x1.npy'
+    filename = 'ellipse/ellipse-mixed-samples-1544185490-8592x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 8592
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'ellipse/ellipse_mixed_encodings_1544185490_8592x27x27x17.npy'
+    filename = 'ellipse/ellipse-mixed-encodings-1544185490-8592x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -110,7 +110,7 @@ def load_images_ellipse_27x27_mixed():
 
 
 def load_images_ellipse_27x27_clustered():
-    filename = 'ellipse/ellipse_clusters_1544193289_8592x10x2x17.npy'
+    filename = 'ellipse/ellipse-clusters-1544193289-8592x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 8592
@@ -129,36 +129,36 @@ def load_images_ellipse_27x27_clustered():
 
 
 def load_encoding_clusters():
-    x = load('encoding_clusters_v2_7234x10x2x17.npy')
+    x = load('encoding-clusters-v2-7234x10x2x17.npy')
     assert x.shape == (7234, 10, 2, 17)
     return x
 
 
 def load_graph_lines():
-    nodes = load('graph_lines.npy')
+    nodes = load('graph-lines.npy')
     assert nodes.shape[1:] == (17, )
     return nodes
 
 
 def load_graph_edges():
-    edges = load('graph_edges.npy')
+    edges = load('graph-edges.npy')
     assert edges.shape[1:] == (2, )
     return edges
 
 
 def load_graph_lines_set():
-    nodes = load('graph_lines_set_v1_146x4x17.npy')
+    nodes = load('graph-lines-set-v1-146x4x17.npy')
     assert nodes.shape[1:] == (4, 17)
     return nodes
 
 
 def load_graph_edges_set():
-    edges = load('graph_edges_set_v1_146x4x2.npy')
+    edges = load('graph-edges-set-v1-146x4x2.npy')
     assert edges.shape[1:] == (4, 2)
     return edges
 
 
 def load_graph_mapping_set():
-    mappings = load('graph_mapping_set_v1_146x4x9.npy')
+    mappings = load('graph-mapping-set-v1-146x4x9.npy')
     assert mappings.shape[1:] == (4, 9)
     return mappings
