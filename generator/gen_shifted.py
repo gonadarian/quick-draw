@@ -17,8 +17,7 @@ def main(concept, density):
     shift_matrix = gens.get_shift_matrix(dim)
     assert shift_matrix.shape == (1, dim, dim, 2)
 
-    x = concept.dataset_centered()
-    m = x.shape[0]
+    x, m = concept.dataset_centered()
     print("x: ", x.shape)
 
     autoencoder_model = concept.model_autoencoder()
@@ -68,11 +67,11 @@ def main(concept, density):
 
     timestamp = int(t.time())
 
-    filename = 'data/{}/{}_27x27_samples_{}_{}x{}x{}x1.npy'
+    filename = 'data/{}/{}_shifted_samples_{}_{}x{}x{}x1.npy'
     filename = filename.format(concept.code, concept.code, timestamp, x.shape[0], dim, dim)
     np.save(filename, x)
 
-    filename = 'data/{}/{}_27x27_encodings_{}_{}x{}x{}x{}.npy'
+    filename = 'data/{}/{}_shifted_encodings_{}_{}x{}x{}x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, x.shape[0], dim, dim, channels_full)
     np.save(filename, y)
 

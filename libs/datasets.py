@@ -8,31 +8,41 @@ def load(filename):
     return dataset
 
 
-def load_images_line_centered():
-    x = load('line_originals_v2_392x28x28.npy')
-    assert x.shape == (392, 28, 28)
-    x = x.astype('float32') / 255.
-    x = np.reshape(x, (len(x), 28, 28, 1))
-    assert x.shape == (392, 28, 28, 1)
-    return x
-
-
 def load_images_line_27x27_centered():
-    x = load('lines_27x27/line_27x27_centered_v1_351x27x27.npy')
-    assert x.shape == (351, 27, 27)
+    x = load('line/line_centered_1544186065_364x27x27.npy')
+    m = x.shape[0]
+    assert m == 364
+    assert x.shape == (m, 27, 27)
+
     x = x.astype('float32') / 255.
     x = np.reshape(x, (len(x), 27, 27, 1))
-    assert x.shape == (351, 27, 27, 1)
-    return x
+    assert x.shape == (m, 27, 27, 1)
+
+    return x, m
+
+
+def load_images_line_27x27_shifted():
+    filename = 'line/line_shifted_samples_1544171724_5815x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 5815
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'line/line_shifted_encodings_1544171724_5815x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
 
 
 def load_images_line_27x27_mixed():
-    filename = 'lines_27x27/line_27x27_mixed_samples_v1_5815x27x27x1.npy'
+    filename = 'line/line_mixed_samples_1544185269_5815x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
+    assert m == 5815
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'lines_27x27\line_27x27_mixed_encodings_v1_5815x27x27x17.npy'
+    filename = 'line/line_mixed_encodings_1544185269_5815x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -40,12 +50,44 @@ def load_images_line_27x27_mixed():
 
 
 def load_images_ellipse_27x27_centered():
-    x = load('ellipse/ellipse_27x27_centered_v1_2028x27x27.npy')
-    assert x.shape == (2028, 27, 27)
+    x = load('ellipse/ellipse_centered_1544185820_2028x27x27.npy')
+    m = x.shape[0]
+    assert m == 2028
+    assert x.shape == (m, 27, 27)
+
     x = x.astype('float32') / 255.
-    x = np.reshape(x, (len(x), 27, 27, 1))
-    assert x.shape == (2028, 27, 27, 1)
-    return x
+    x = np.reshape(x, (m, 27, 27, 1))
+    assert x.shape == (m, 27, 27, 1)
+
+    return x, m
+
+
+def load_images_ellipse_27x27_shifted():
+    filename = 'ellipse/ellipse_shifted_samples_1544172002_8592x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 8592
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'ellipse/ellipse_shifted_encodings_1544172002_8592x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
+def load_images_ellipse_27x27_mixed():
+    filename = 'ellipse/ellipse_mixed_samples_1544185490_8592x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 8592
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'ellipse/ellipse_mixed_encodings_1544185490_8592x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
 
 
 def load_encoding_clusters():

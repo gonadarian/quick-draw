@@ -1,6 +1,8 @@
+import time as t
 import numpy as np
 import random as rand
 import libs.generators as gens
+from libs.concepts import Concept
 
 
 def ellipse_drawer(draw, dim, params):
@@ -9,7 +11,7 @@ def ellipse_drawer(draw, dim, params):
     draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), outline=255)
 
 
-def main():
+def main(concept):
     dim = 27
     quadrant_width = 13
 
@@ -32,9 +34,12 @@ def main():
     images = np.array(images)
     print('shape:', images.shape)
 
-    np.save('data\ellipse\ellipse_27x27_centered_v1_{}x{}x{}.npy'.format(len(images), dim, dim), images)
+    timestamp = int(t.time())
+    filename = 'data/{}/{}_centered_{}_{}x{}x{}.npy'
+    filename = filename.format(concept.code, concept.code, timestamp, len(images), dim, dim)
+    np.save(filename, images)
 
 
 if __name__ == '__main__':
-    main()
+    main(Concept.ELLIPSE)
     print('end')
