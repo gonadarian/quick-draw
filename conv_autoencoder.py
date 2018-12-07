@@ -9,7 +9,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = False
+train = True
 preload = not train
 predict = True
 analyze_1 = False
@@ -88,15 +88,15 @@ def analysis_2(autoencoder_model):
 def main(concept):
 
     if preload:
-        autoencoder_model = concept.model_loader()
+        autoencoder_model = concept.model_autoencoder()
 
     else:
-        autoencoder_model = concept.model_creator()
+        autoencoder_model = concept.model_autoencoder_creator()
         autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
 
     autoencoder_model.summary()
 
-    x = concept.dataset_loader()
+    x, _ = concept.dataset_centered()
 
     if train:
         epochs = 1000
@@ -132,5 +132,6 @@ def main(concept):
 
 
 if __name__ == '__main__':
+    main(Concept.LINE)
     main(Concept.ELLIPSE)
     print('end')
