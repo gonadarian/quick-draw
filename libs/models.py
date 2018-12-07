@@ -25,6 +25,11 @@ def load_autoencoder_model_27x27():
     return autoencoder_model
 
 
+def load_autoencoder_ellipse_model_27x27():
+    autoencoder_model = load('ellipse/conv-autoencoder-ellipse-1544114775-e0980-0.00196.hdf5')
+    return autoencoder_model
+
+
 def load_encoder_model():
     encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
     return encoder_model

@@ -4,11 +4,17 @@ import random as rand
 from PIL import Image, ImageDraw
 
 
-def draw_image(dim, params, drawer, show=False):
+def draw_image(dim, params, drawer, rotate=None, show=False):
     image = Image.new("L", (dim, dim), "black")
 
     draw = ImageDraw.Draw(image)
     drawer(draw, dim, params)
+
+    if rotate:
+        rotated = image.rotate(rotate, resample=Image.NEAREST, expand=False)
+        image = Image.new('L', (dim, dim), 'black')
+        image.paste(rotated, (0, 0), rotated)
+
     image_array = np.asarray(image)
 
     if show:

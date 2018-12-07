@@ -15,8 +15,8 @@ class Concept(Enum):
     ELLIPSE = (
         'ellipse',
         mdls.get_model_autoencoder_27x27,
-        None,
-        None,
+        mdls.load_autoencoder_ellipse_model_27x27,
+        ds.load_images_ellipse_27x27_centered,
     )
 
     def __init__(self, code, model_creator, model_loader, dataset_loader):

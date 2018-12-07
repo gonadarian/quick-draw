@@ -1,4 +1,5 @@
 import numpy as np
+import random as rand
 import libs.generators as gens
 
 
@@ -10,18 +11,23 @@ def ellipse_drawer(draw, dim, params):
 
 def main():
     dim = 27
-    center = dim // 2 - 1
+    quadrant_width = 13
 
     images = []
 
-    for x in range(center + 1):
-        for y in range(dim):
-            if x == center and y == center:
-                break
+    for x in range(quadrant_width):
+        for y in range(quadrant_width):
 
-            params = [x, y]
-            image = gens.draw_image(dim, params, drawer=ellipse_drawer, show=False)
-            images.append(image)
+            # introduce some randomness to angles,
+            # so we cover as many different angles as possible
+            shift = rand.randint(0, 29)
+
+            for r in range(12):
+                params = [x, y]
+                image = gens.draw_image(dim, params, drawer=ellipse_drawer, rotate=shift + r * 30)
+                assert np.sum(image) > 0
+
+                images.append(image)
 
     images = np.array(images)
     print('shape:', images.shape)

@@ -2,7 +2,6 @@ import time as t
 import numpy as np
 import random as rand
 import libs.models as mdls
-# import libs.datasets as ds
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
 from keras.callbacks import TensorBoard, ModelCheckpoint
@@ -10,7 +9,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = True
+train = False
 preload = not train
 predict = True
 analyze_1 = False
@@ -34,6 +33,7 @@ def prediction(autoencoder_model, x, n=10):
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
+        ax.set_title(index)
 
         # display reconstruction
         ax = plt.subplot(3, n, i + 1 + n)
@@ -99,8 +99,8 @@ def main(concept):
     x = concept.dataset_loader()  # ds.load_images_line_27x27_centered()
 
     if train:
+        epochs = 1000
         batch_size = 64
-        epochs = 10000
         timestamp = int(t.time())
 
         model_name = 'conv-autoencoder-{}-{}'.format(concept.code, timestamp)
@@ -132,5 +132,5 @@ def main(concept):
 
 
 if __name__ == '__main__':
-    main(Concept.LINE)
+    main(Concept.ELLIPSE)
     print('end')

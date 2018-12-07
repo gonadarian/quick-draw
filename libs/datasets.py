@@ -26,6 +26,15 @@ def load_images_line_27x27_centered():
     return x
 
 
+def load_images_ellipse_27x27_centered():
+    x = load('ellipse/ellipse_27x27_centered_v1_2028x27x27.npy')
+    assert x.shape == (2028, 27, 27)
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (len(x), 27, 27, 1))
+    assert x.shape == (2028, 27, 27, 1)
+    return x
+
+
 def load_encoding_clusters():
     x = load('encoding_clusters_v2_7234x10x2x17.npy')
     assert x.shape == (7234, 10, 2, 17)
