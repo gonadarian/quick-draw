@@ -1,8 +1,8 @@
 import numpy as np
 import random as rand
-import libs.models as mdls
 import libs.utilities as utl
 import matplotlib.pyplot as plt
+from libs.concepts import Concept
 from PIL import Image, ImageDraw
 
 
@@ -14,7 +14,7 @@ adjacency_threshold = -30
 channels_full = 17
 channels = 14
 
-quick_draw_data = False
+quick_draw_data = True
 custom_shape = 3
 analysis = True
 saving = False
@@ -22,12 +22,19 @@ saving = False
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
-def load_quick_draw_data_set():
-    data = np.load('generator/data/triangle.npy')  # TODO use datasets load method
+def load_quick_draw_data_set(concept):
+    switcher = {
+        Concept.LINE: 'triangle',
+        Concept.ELLIPSE: 'circle',
+    }
+
+    # TODO use datasets load method
+    filename = 'generator/data/quickdraw/quickdraw-{}.npy'.format(switcher.get(concept))
+    data = np.load(filename)
     data = data.reshape((-1, 28, 28))[:, :dim, :dim]
     data = data.astype('float32') / 255.
-
     assert data.shape[1:] == (dim, dim)
+
     return data
 
 
@@ -67,10 +74,10 @@ def load_custom_data_sample(shape=1, show=False):
     return data
 
 
-def main():
+def main(concept):
 
     if quick_draw_data:
-        data_set = load_quick_draw_data_set()
+        data_set = load_quick_draw_data_set(concept)
         index = rand.randint(0, len(data_set))
         print('using quick draw sample', index)
         sample = data_set[index, :, :]
@@ -80,9 +87,9 @@ def main():
 
     assert sample.shape == (dim, dim)
 
-    _, decoder_model = mdls.load_autoencoder_line_model_27x27()
-    matrix_encoder_model = mdls.load_matrix_encoder_line_model_27x27()
-    clustering_model = mdls.load_clustering_line_model()
+    _, decoder_model = concept.model_autoencoder()
+    matrix_encoder_model = concept.model_matrix_encoder()
+    clustering_model = concept.model_clustering()
 
     embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
@@ -117,11 +124,12 @@ def main():
 
     if saving:
         print(lines)
-        np.save('generator/data/graph_lines.npy', np.array(lines))
+        np.save('generator/data/graph_vertices.npy', np.array(lines))
         print(edges)
         np.save('generator/data/graph_edges.npy', np.array(edges))
 
 
 if __name__ == '__main__':
-    main()
+    main(Concept.LINE)
+    main(Concept.ELLIPSE)
     print('end')
