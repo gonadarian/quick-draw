@@ -20,9 +20,6 @@ def main():
     m = x.shape[0]
     print("x: ", x.shape)
 
-    y = np.zeros((m, dim, dim, channels_full))
-    print("y: ", y.shape)
-
     autoencoder_model = mdls.load_autoencoder_model_27x27()
     autoencoder_model.outputs = [autoencoder_model.layers[8].output]
 
@@ -31,7 +28,7 @@ def main():
 
     for i in range(m):
         x_sample = [x[[i], ...]]
-        encoding = autoencoder_model.predict(x_sample)
+        encoding = autoencoder_model.predict(x_sample)  # TODO predict all at once
         assert encoding.shape == (1, 1, 1, channels)
         encoding = encoding.reshape((1, 1, channels))
 
@@ -44,7 +41,9 @@ def main():
             sample = sample.reshape((dim, dim, 1))
 
             shift = np.zeros((1, 1, 1, 2))
-            shift[0, 0, 0, :] = [shift_col / (dim - 1), shift_row / (dim - 1)]  # 'dim' points, but 'dim-1' ranges
+
+            # 'dim' points, but 'dim-1' ranges
+            shift[0, 0, 0, :] = [shift_col / (dim - 1), shift_row / (dim - 1)]
             shift = shift_matrix + shift
 
             y = np.zeros((dim, dim, channels_full))
