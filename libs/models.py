@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 import keras.backend as k
 import libs.lambdas as ls
+import libs.losses as loss
 from libs.layers import GraphConv, GraphConvV2, Graph2Col
 from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
@@ -239,13 +240,6 @@ def create_clustering_model():
     return model
 
 
-# TODO move to losses file
-def absolute_loss(vector):
-    loss = k.mean(vector)
-    assert loss.shape == ()
-    return loss
-
-
 def create_graph_autoencoder_model(units_list, node_count, region_count):
     assert len(units_list) >= 2
 
@@ -292,7 +286,7 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
             column_indices])
 
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(absolute_loss(variance))
+    model.add_loss(loss.absolute_loss(variance))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae', 'acc'])
 
     return model
