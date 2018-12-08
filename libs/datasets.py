@@ -8,6 +8,16 @@ def load(filename):
     return dataset
 
 
+def load_images_quickdraw(category, dim):
+    filename = 'quickdraw/quickdraw-{}.npy'.format(category)
+    x = load(filename)
+    x = x.reshape((-1, 28, 28))[:, :dim, :dim]
+    x = x.astype('float32') / 255.
+    assert x.shape[1:] == (dim, dim)
+
+    return x
+
+
 def load_images_line_27x27_centered():
     x = load('line/line-centered-1544186065-364x27x27.npy')
     m = x.shape[0]

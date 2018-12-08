@@ -1,5 +1,6 @@
 import numpy as np
 import random as rand
+import libs.datasets as ds
 import libs.utilities as utl
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
@@ -22,20 +23,16 @@ saving = False
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
-def load_quick_draw_data_set(concept):
+def load_quickdraw_dataset(concept):
     switcher = {
         Concept.LINE: 'triangle',
         Concept.ELLIPSE: 'circle',
     }
 
-    # TODO use datasets load method
-    filename = 'generator/data/quickdraw/quickdraw-{}.npy'.format(switcher.get(concept))
-    data = np.load(filename)
-    data = data.reshape((-1, 28, 28))[:, :dim, :dim]
-    data = data.astype('float32') / 255.
-    assert data.shape[1:] == (dim, dim)
+    category = switcher.get(concept)
+    x = ds.load_images_quickdraw(category, dim=27)
 
-    return data
+    return x
 
 
 def load_custom_data_sample(shape=1, show=False):
@@ -77,7 +74,7 @@ def load_custom_data_sample(shape=1, show=False):
 def main(concept):
 
     if quick_draw_data:
-        data_set = load_quick_draw_data_set(concept)
+        data_set = load_quickdraw_dataset(concept)
         index = rand.randint(0, len(data_set))
         print('using quick draw sample', index)
         sample = data_set[index, :, :]
