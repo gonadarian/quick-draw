@@ -51,7 +51,7 @@ def load_autoencoder_ellipse_model_27x27():
 
 
 def load_matrix_encoder_ellipse_model_27x27():
-    matrix_encoder_model = load('ellipse/conv-matrix-encoder-ellipse-1544188766-e0007-0.009631.hdf5')
+    matrix_encoder_model = load('ellipse/conv-matrix-encoder-ellipse-1544229426-e0301-0.002483.hdf5')
     return matrix_encoder_model
 
 
