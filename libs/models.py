@@ -56,7 +56,7 @@ def load_matrix_encoder_ellipse_model_27x27():
 
 
 def load_clustering_ellipse_model():
-    clustering_model = load('ellipse/conv-clustering-ellipse-1544196233-e0100-0.077261.hdf5')
+    clustering_model = load('ellipse/conv-clustering-ellipse-1544360371-e0920-0.001776.hdf5')
     return clustering_model
 
 

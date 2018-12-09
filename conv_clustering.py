@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = False
+train = True
 preload = not train
 predict = True
 
@@ -47,7 +47,7 @@ def main(concept):
     if train:
         x, y, _ = concept.dataset_clustered()
 
-        epochs = 100
+        epochs = 1000
         batch_size = 32
         timestamp = int(t.time())
 
@@ -63,7 +63,7 @@ def main(concept):
             validation_data=(x, y),
             callbacks=[
                 TensorBoard(log_dir=log_dir),
-                ModelCheckpoint(filepath=filepath, save_best_only=True, period=10)
+                ModelCheckpoint(filepath=filepath, save_best_only=True, period=5)
             ]
         )
 
