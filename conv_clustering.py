@@ -35,17 +35,12 @@ def prediction(concept, clustering_model):
 
 def main(concept):
 
-    if preload:
-        clustering_model = concept.model_clustering()
-
-    else:
-        clustering_model = concept.model_clustering_creator()
-        clustering_model.compile(optimizer='adam', loss='binary_crossentropy')
-
+    clustering_model = concept.model_clustering() if preload else concept.model_clustering_creator()
     clustering_model.summary()
 
+    x, y, _ = concept.dataset_clustered()
+
     if train:
-        x, y, _ = concept.dataset_clustered()
 
         epochs = 1000
         batch_size = 32

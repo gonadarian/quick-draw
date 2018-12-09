@@ -87,16 +87,10 @@ def analysis(embeddings):
 
 def main(concept):
 
-    x, y, m = concept.dataset_mixed()
-
-    if preload:
-        matrix_encoder_model = concept.model_matrix_encoder()
-
-    else:
-        matrix_encoder_model = concept.model_matrix_encoder_creator()
-        matrix_encoder_model.compile(optimizer='adam', loss='mean_squared_error')
-
+    matrix_encoder_model = concept.model_matrix_encoder() if preload else concept.model_matrix_encoder_creator()
     matrix_encoder_model.summary()
+
+    x, y, m = concept.dataset_mixed()
 
     if train:
         epochs = 1000

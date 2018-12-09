@@ -2,7 +2,10 @@ import os
 import tensorflow as tf
 import keras.backend as k
 import libs.lambdas as ls
-import libs.losses as loss
+import keras.losses as loss
+import keras.metrics as metric
+import keras.optimizers as optimizer
+from libs.losses import absolute_loss
 from libs.layers import GraphConv, GraphConvV2, Graph2Col
 from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
@@ -78,7 +81,10 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
     }
 
     autoencoder_model = load(versions[version], custom_objects)
-    autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['mae', 'acc'])
+    autoencoder_model.compile(
+        optimizer=optimizer.Adam,
+        loss=loss.binary_crossentropy,
+        metrics=[metric.mean_absolute_error, metric.binary_accuracy])
 
     return autoencoder_model
 
@@ -138,6 +144,9 @@ def create_autoencoder_model_27x27():
     output_image = decoding
 
     model = Model(input_image, output_image)
+    model.compile(
+        optimizer=optimizer.Adam,
+        loss=loss.binary_crossentropy)
 
     return model
 
@@ -180,6 +189,11 @@ def create_matrix_encoder_model_27x27():
     encoded = x
 
     model = Model(input_image, encoded)
+    model.compile(
+        optimizer=optimizer.Adam,
+        loss=loss.mean_squared_error,
+        metrics=[metric.mean_squared_error, metric.categorical_accuracy])
+
     return model
 
 
@@ -194,7 +208,11 @@ def create_clustering_model():
     x = Dense(1, activation='sigmoid')(x)
 
     output_data = x
+
     model = Model(inputs=input_data, outputs=output_data)
+    model.compile(
+        optimizer=optimizer.Adam,
+        loss=loss.binary_crossentropy)
 
     return model
 
@@ -245,7 +263,10 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
             column_indices])
 
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
-    model.add_loss(loss.absolute_loss(variance))
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae', 'acc'])
+    model.add_loss(absolute_loss(variance))
+    model.compile(
+        optimizer=optimizer.Adam,
+        loss=loss.mean_squared_error,
+        metrics=[metric.mean_squared_error, metric.categorical_accuracy])
 
     return model

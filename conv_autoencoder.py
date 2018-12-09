@@ -87,13 +87,7 @@ def analysis_2(autoencoder_model):
 
 def main(concept):
 
-    if preload:
-        autoencoder_model = concept.model_autoencoder()
-
-    else:
-        autoencoder_model = concept.model_autoencoder_creator()
-        autoencoder_model.compile(optimizer='adam', loss='binary_crossentropy')
-
+    autoencoder_model = concept.model_autoencoder() if preload else concept.model_autoencoder_creator()
     autoencoder_model.summary()
 
     x, _ = concept.dataset_centered()
