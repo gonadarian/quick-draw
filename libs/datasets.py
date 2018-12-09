@@ -120,7 +120,7 @@ def load_images_ellipse_27x27_mixed():
 
 
 def load_images_ellipse_27x27_clustered():
-    filename = 'ellipse/ellipse-clusters-1544193289-8592x10x2x17.npy'
+    filename = 'ellipse/ellipse-clustered-1544307680-8592x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
     assert m == 8592

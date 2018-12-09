@@ -30,11 +30,11 @@ def main(concept):
 
     timestamp = int(t.time())
 
-    filename = 'data/{}/{}_mixed_samples_{}_{}x{}x{}x1.npy'
+    filename = 'data/{}/{}-mixed-samples-{}-{}x{}x{}x1.npy'
     filename = filename.format(concept.code, concept.code, timestamp, m, dim, dim)
     np.save(filename, samples_mix)
 
-    filename = 'data/{}/{}_mixed_encodings_{}_{}x{}x{}x{}.npy'
+    filename = 'data/{}/{}-mixed-encodings-{}-{}x{}x{}x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, m, dim, dim, channels_full)
     np.save(filename, encodings_mix)
 

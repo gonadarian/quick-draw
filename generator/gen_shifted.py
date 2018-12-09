@@ -67,11 +67,11 @@ def main(concept, density):
 
     timestamp = int(t.time())
 
-    filename = 'data/{}/{}_shifted_samples_{}_{}x{}x{}x1.npy'
+    filename = 'data/{}/{}-shifted-samples-{}-{}x{}x{}x1.npy'
     filename = filename.format(concept.code, concept.code, timestamp, x.shape[0], dim, dim)
     np.save(filename, x)
 
-    filename = 'data/{}/{}_shifted_encodings_{}_{}x{}x{}x{}.npy'
+    filename = 'data/{}/{}-shifted-encodings-{}-{}x{}x{}x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, x.shape[0], dim, dim, channels_full)
     np.save(filename, y)
 

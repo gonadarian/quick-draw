@@ -57,7 +57,7 @@ def main(concept):
         pairs[i, pairs_per_sample:, 1, :] = other_encodings[other_pair_indexes]
 
     timestamp = int(t.time())
-    filename = 'data/{}/{}_clusters_{}_{}x{}x2x{}.npy'
+    filename = 'data/{}/{}-clustered-{}-{}x{}x2x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, m, pairs_per_sample * 2, channels_full)
     np.save(filename, pairs)
 
