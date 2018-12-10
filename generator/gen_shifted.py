@@ -5,14 +5,7 @@ import libs.generators as gens
 from libs.concepts import Concept
 
 
-dim = 27
-channels = 14
-channels_full = 17
-
-rand.seed(1)
-
-
-def main(concept, density):
+def gen_shifted(concept, density, dim=27, channels=14, channels_full=17):
 
     shift_matrix = gens.get_shift_matrix(dim)
     assert shift_matrix.shape == (1, dim, dim, 2)
@@ -77,6 +70,9 @@ def main(concept, density):
 
 
 if __name__ == '__main__':
-    main(Concept.LINE, density=0.1)
-    main(Concept.ELLIPSE, density=0.02)
+    rand.seed(1)
+
+    gen_shifted(Concept.LINE, density=0.1)
+    gen_shifted(Concept.ELLIPSE, density=0.02)
+
     print('done all')

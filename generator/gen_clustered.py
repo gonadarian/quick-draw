@@ -5,13 +5,7 @@ import libs.utilities as utl
 from libs.concepts import Concept
 
 
-dim = 27
-channels_full = 17
-
-rand.seed(1)
-
-
-def main(concept):
+def gen_clustered(concept, dim=27, channels_full=17):
 
     samples, _, m = concept.dataset_shifted()
     encoder_model = concept.model_matrix_encoder()
@@ -65,6 +59,9 @@ def main(concept):
 
 
 if __name__ == '__main__':
-    main(Concept.LINE)
-    main(Concept.ELLIPSE)
+    rand.seed(1)
+
+    gen_clustered(Concept.LINE)
+    gen_clustered(Concept.ELLIPSE)
+
     print('end')

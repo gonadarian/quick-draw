@@ -5,13 +5,7 @@ import libs.generators as gens
 from libs.concepts import Concept
 
 
-dim = 27
-channels_full = 17
-
-rand.seed(1)
-
-
-def main(concept):
+def gen_mixed(concept, dim=27, channels_full=17):
 
     samples, encodings, m = concept.dataset_shifted()
 
@@ -40,6 +34,9 @@ def main(concept):
 
 
 if __name__ == '__main__':
-    main(Concept.LINE)
-    main(Concept.ELLIPSE)
+    rand.seed(1)
+
+    gen_mixed(Concept.LINE)
+    gen_mixed(Concept.ELLIPSE)
+
     print('end')
