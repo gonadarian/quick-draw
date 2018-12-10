@@ -11,8 +11,8 @@ dim = 27
 channels = 14
 channels_full = 17
 
-preload = True
-train = not preload
+train = False
+preload = not train
 predict = True
 analyze = False
 

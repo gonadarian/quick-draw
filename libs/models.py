@@ -31,13 +31,15 @@ def load_matrix_encoder_line_model():
 
 # TODO refactor to return encoder model as well
 def load_autoencoder_line_model_27x27():
-    autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
+    # autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
+    autoencoder_model = load('line/conv-autoencoder-line-1544197342-e0950-0.00108.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
     return autoencoder_model, decoder_model
 
 
 def load_matrix_encoder_line_model_27x27():
-    matrix_encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
+    # matrix_encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
+    matrix_encoder_model = load('line/conv-matrix-encoder-line-1544366140-e0411-0.000025.hdf5')
     return matrix_encoder_model
 
 
@@ -82,7 +84,7 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
 
     autoencoder_model = load(versions[version], custom_objects)
     autoencoder_model.compile(
-        optimizer=optimizer.Adam,
+        optimizer=optimizer.Adam(),
         loss=loss.binary_crossentropy,
         metrics=[metric.mean_absolute_error, metric.binary_accuracy])
 
@@ -112,7 +114,6 @@ def extract_decoder_model(autoencoder, show=False):
     return decoder
 
 
-# TODO refactor to return both autoencoder, encoder and decoder models
 def create_autoencoder_model_27x27():
     input_image = Input(shape=(27, 27, 1))
 
@@ -143,12 +144,15 @@ def create_autoencoder_model_27x27():
 
     output_image = decoding
 
-    model = Model(input_image, output_image)
-    model.compile(
-        optimizer=optimizer.Adam,
+    autoencoder_model = Model(input_image, output_image)
+    autoencoder_model.compile(
+        optimizer=optimizer.Adam(),
         loss=loss.binary_crossentropy)
 
-    return model
+    decoder_model = extract_decoder_model(autoencoder_model)
+
+    # TODO refactor to return encoder model as well
+    return autoencoder_model, decoder_model
 
 
 def create_matrix_encoder_model():
@@ -190,7 +194,7 @@ def create_matrix_encoder_model_27x27():
 
     model = Model(input_image, encoded)
     model.compile(
-        optimizer=optimizer.Adam,
+        optimizer=optimizer.Adam(),
         loss=loss.mean_squared_error,
         metrics=[metric.mean_squared_error, metric.categorical_accuracy])
 
@@ -211,7 +215,7 @@ def create_clustering_model():
 
     model = Model(inputs=input_data, outputs=output_data)
     model.compile(
-        optimizer=optimizer.Adam,
+        optimizer=optimizer.Adam(),
         loss=loss.binary_crossentropy)
 
     return model
@@ -265,7 +269,7 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
     model = Model(inputs=[input_nodes, input_graph], outputs=decoding)
     model.add_loss(absolute_loss(variance))
     model.compile(
-        optimizer=optimizer.Adam,
+        optimizer=optimizer.Adam(),
         loss=loss.mean_squared_error,
         metrics=[metric.mean_squared_error, metric.categorical_accuracy])
 

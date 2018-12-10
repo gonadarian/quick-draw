@@ -9,7 +9,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = True
+train = False
 preload = not train
 predict = True
 analyze_1 = False
@@ -87,7 +87,9 @@ def analysis_2(autoencoder_model):
 
 def main(concept):
 
-    autoencoder_model = concept.model_autoencoder() if preload else concept.model_autoencoder_creator()
+    autoencoder_model, _ = (concept.model_autoencoder() if preload else
+                            concept.model_autoencoder_creator())
+
     autoencoder_model.summary()
 
     x, _ = concept.dataset_centered()
