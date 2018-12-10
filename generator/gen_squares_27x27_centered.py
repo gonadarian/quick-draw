@@ -46,6 +46,7 @@ def main():
     testing = False
 
     image_list, m = get_images(dim=dim)
+    region_list = utl.get_regions(regions)
 
     concept = Concept.LINE
 
@@ -70,6 +71,7 @@ def main():
 
     vertex_matrix = []
     edge_matrix = []
+    mapping_matrix = []
 
     for index, image in enumerate(image_list):
 
@@ -77,37 +79,32 @@ def main():
             decoder_model, matrix_encoder_model, clustering_model, image,
             adjacency_threshold, embedding_threshold, cluster_threshold, dim=dim)
 
-        if len(vertex_list) == vertices and len(edge_list) == vertices:
-            print('image no:', index)
-            vertex_matrix.extend(vertex_list)
-            edge_matrix.extend(edge_list)
+        # only accept graphs with predefined number of vertices
+        if len(vertex_list) != vertices or len(edge_list) != vertices:
+            continue
+
+        print('image no:', index)
+
+        # preparing data for mapping matrix generation
+        adjacency_matrix = utl.get_adjacency_matrix_from_edges(vertices, edge_list)
+        region_matrix = utl.get_region_matrix(vertex_list, region_list, show=False, debug=False)
+        row_indices, column_indices, node_indices = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
+
+        # embed node indices at calculated locations in mapping matrix
+        mapping_list = np.full((vertices, regions), -1)
+        mapping_list[row_indices, column_indices] = node_indices
+
+        vertex_matrix.extend(vertex_list)
+        edge_matrix.extend(edge_list)
+        mapping_matrix.extend(mapping_list)
 
     vertex_matrix = np.array(vertex_matrix).reshape((-1, vertices, channels_full))
     edge_matrix = np.array(edge_matrix).reshape((-1, vertices, 2))
+    mapping_matrix = np.array(mapping_matrix).reshape((-1, vertices, regions))
 
     m = len(vertex_matrix)
     assert vertex_matrix.shape == (m, vertices, channels_full)
     assert edge_matrix.shape == (m, vertices, 2)
-
-    mapping_matrix = []
-    region_list = utl.get_regions(regions)
-
-    for index in range(m):
-
-        vertex_list = vertex_matrix[index]
-        edge_list = edge_matrix[index]
-
-        adjacency_matrix = utl.get_adjacency_matrix_from_edges(vertices, edge_list)
-        region_matrix = utl.get_region_matrix(vertex_list, region_list, show=True, debug=True)
-
-        row_indexes, column_indexes, node_indexes = utl.get_matrix_transformation(adjacency_matrix, region_matrix)
-
-        mapping = np.full((vertices, regions), -1)
-        mapping[row_indexes, column_indexes] = node_indexes
-
-        mapping_matrix.extend(mapping)
-
-    mapping_matrix = np.array(mapping_matrix).reshape((-1, vertices, regions))
     assert mapping_matrix.shape == (m, vertices, regions)
 
     if saving:

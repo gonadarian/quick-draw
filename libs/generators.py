@@ -120,4 +120,4 @@ def get_graph(decoder_model, encoder_model, clustering_model, sample,
         print(adjacency_matrix)
         utl.draw_graph(edge_list)
 
-    return vertex_list, edge_list
+    return np.array(vertex_list), np.array(edge_list)
