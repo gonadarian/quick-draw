@@ -12,6 +12,7 @@ train = True
 preload = not train
 predict = True
 
+# TODO extract to utility method and reuse where needed
 rand.seed(1)
 np.random.seed(1)
 
