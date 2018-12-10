@@ -89,7 +89,6 @@ def main(concept):
 
     autoencoder_model, _ = (concept.model_autoencoder() if preload else
                             concept.model_autoencoder_creator())
-
     autoencoder_model.summary()
 
     x, _ = concept.dataset_centered()

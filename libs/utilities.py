@@ -273,6 +273,7 @@ def get_regions(region_count=9, show=False):
     return regions
 
 
+# TODO split this to two functions, one for debug, one regular, or something similar
 def get_region_matrix(node_list, region_list, show=False, debug=False):
     vertices = len(node_list)
     region_matrix = np.zeros((vertices, vertices, 5)) if debug else np.zeros((vertices, vertices))

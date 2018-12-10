@@ -13,8 +13,8 @@ show = False
 
 def main():
 
-    nodes = ds.load_graph_lines() if real_data \
-        else np.arange(vertices * channels_full).reshape((vertices, channels_full))
+    nodes = (ds.load_graph_lines() if real_data else
+             np.arange(vertices * channels_full).reshape((vertices, channels_full)))
     assert nodes.shape == (vertices, channels_full)
 
     edges = ds.load_graph_edges()

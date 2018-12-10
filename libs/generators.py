@@ -67,9 +67,9 @@ def generated_shifted_samples(sample, dim, density=0.3):
     rows = dim - 2 * empty_rows
     cols = dim - 2 * empty_cols
 
-    max_image_count = 0 if empty_rows == 0 and empty_cols == 0 else\
-        2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else\
-        4 * empty_rows * empty_cols
+    max_image_count = (0 if empty_rows == 0 and empty_cols == 0 else
+                       2 * empty_rows + 2 * empty_cols if empty_rows == 0 or empty_cols == 0 else
+                       4 * empty_rows * empty_cols)
 
     image_count = math.ceil(max_image_count * density)
     samples = [(sample, 0, 0)]
