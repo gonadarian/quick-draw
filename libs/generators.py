@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import random as rand
+import libs.utilities as utl
 from PIL import Image, ImageDraw
 
 
@@ -83,3 +84,40 @@ def generated_shifted_samples(sample, dim, density=0.3):
         samples.append((shifted_sample, shift_row, shift_col))
 
     return samples
+
+
+def get_graph(decoder_model, encoder_model, clustering_model, sample,
+              adjacency_threshold, embedding_threshold, cluster_threshold, dim=27, show=False):
+
+    # TODO embeddings and clusters should be done in a loop, individually per concept
+    embedding_list = utl.get_embeddings(encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
+    cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embedding_list)
+    cluster_list = utl.extract_clusters(cluster_matrix)
+
+    image_list = []
+    vertex_list = []
+
+    for cluster in cluster_list:
+        if len(cluster) > cluster_threshold:
+
+            cluster_embeddings = embedding_list[list(cluster)]
+            cluster_embedding = np.mean(cluster_embeddings, axis=0)
+            encoding, center = utl.extract_encoding_and_center(cluster_embedding)
+            assert len(encoding.shape) == 1
+            assert center.shape == (2, )
+
+            image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
+            image_list.append(image)
+            vertex_list.append(cluster_embedding)
+
+    # TODO adjacency matrix should be calculated against all supported concepts
+    adjacency_matrix = utl.get_adjacency_matrix(image_list, dim=dim, show=False)
+    adjacency_matrix = adjacency_matrix > adjacency_threshold
+    edge_list = utl.get_graph_edges(adjacency_matrix)
+
+    if show:
+        utl.show_clusters(sample, image_list, dim=dim)
+        print(adjacency_matrix)
+        utl.draw_graph(edge_list)
+
+    return vertex_list, edge_list
