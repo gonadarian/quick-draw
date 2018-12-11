@@ -42,7 +42,7 @@ def load_matrix_encoder_line_model_27x27():
 
 
 def load_clustering_line_model():
-    clustering_model = load('line/conv-clustering-line-1544195226-e0100-0.003500.hdf5')
+    clustering_model = load('line/conv-clustering-line-1544542116-e0295-0.001054.hdf5')
     return clustering_model
 
 

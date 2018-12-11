@@ -60,10 +60,10 @@ def load_images_line_27x27_mixed():
 
 
 def load_images_line_27x27_clustered():
-    filename = 'line/line-clusters-1544187266-5815x10x2x17.npy'
+    filename = 'line/line-clustered-1544541841-6242x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
-    assert m == 5815
+    assert m == 6242
     assert x.shape == (m, 10, 2, 17)
 
     # TODO pair count, 10, should be a parameter of this method

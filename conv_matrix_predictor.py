@@ -127,6 +127,8 @@ def main(concept):
 
 
 if __name__ == '__main__':
+
     main(Concept.LINE)
     main(Concept.ELLIPSE)
+
     print('end')
