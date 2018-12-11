@@ -1,7 +1,6 @@
 import time as t
 import numpy as np
 import random as rand
-import libs.models as mdls
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
 from keras.callbacks import TensorBoard, ModelCheckpoint
@@ -9,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = False
+train = True
 preload = not train
 predict = True
 analyze_1 = False
@@ -53,20 +52,16 @@ def prediction(autoencoder_model, x, n=10):
     plt.show()
 
 
-def analysis_1(autoencoder_model, x):
+def analysis_1(encoder_model, x):
     m = x.shape[0]
-
-    autoencoder_model.outputs = [autoencoder_model.layers[8].output]
 
     for idx in range(m):
         sample = [x[[idx], ...]]
-        activation = autoencoder_model.predict(sample)
+        activation = encoder_model.predict(sample)
         print('\t'.join(list(map(lambda it: '{0:.3f}'.format(it), activation[0, 0, 0, :]))))
 
 
-def analysis_2(autoencoder_model):
-    decoder_model = mdls.extract_decoder_model(autoencoder_model, show=True)
-
+def analysis_2(decoder_model):
     # this is a 14-number encoding for one of the lines in the test set
     sample = np.array([[[
         [-0.266, 0.209, 0.830, -0.031, 0.069, 0.922, -0.987, 0.800, -0.882, 0.431, 0.853, 0.117, 0.793, 0.388]
@@ -87,8 +82,8 @@ def analysis_2(autoencoder_model):
 
 def main(concept):
 
-    autoencoder_model, _ = (concept.model_autoencoder() if preload else
-                            concept.model_autoencoder_creator())
+    autoencoder_model, encoder_model, decoder_model = (concept.model_autoencoder() if preload else
+                                                       concept.model_autoencoder_creator())
     autoencoder_model.summary()
 
     x, _ = concept.dataset_centered()
@@ -119,11 +114,11 @@ def main(concept):
 
     # show activations of encoded layer with 14 numbers
     if analyze_1:
-        analysis_1(autoencoder_model, x)
+        analysis_1(encoder_model, x)
 
     # generate images for encoded values of choice
     if analyze_2:
-        analysis_2(autoencoder_model)
+        analysis_2(decoder_model)
 
 
 if __name__ == '__main__':

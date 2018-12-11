@@ -40,7 +40,8 @@ def main():
 
     assert sample.shape == (dim, dim)
 
-    _, decoder_model = mdls.load_autoencoder_line_model()
+    # TODO move away from 28x28 models
+    _, _, decoder_model = mdls.load_autoencoder_line_model()
     matrix_encoder_model = mdls.load_matrix_encoder_line_model()
     clustering_model = mdls.load_clustering_line_model()
 

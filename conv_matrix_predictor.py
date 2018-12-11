@@ -84,7 +84,7 @@ def main(concept):
 
     assert sample.shape == (dim, dim)
 
-    _, decoder_model = concept.model_autoencoder()
+    _, _, decoder_model = concept.model_autoencoder()
     matrix_encoder_model = concept.model_matrix_encoder()
     clustering_model = concept.model_clustering()
 

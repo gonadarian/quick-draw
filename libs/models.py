@@ -17,11 +17,11 @@ def load(filename, custom_objects=None):
     return model
 
 
-# TODO refactor to return encoder model as well
 def load_autoencoder_line_model():
     autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
-    return autoencoder_model, decoder_model
+    encoder_model = extract_encoder_model(autoencoder_model)
+    return autoencoder_model, encoder_model, decoder_model
 
 
 def load_matrix_encoder_line_model():
@@ -29,17 +29,15 @@ def load_matrix_encoder_line_model():
     return matrix_encoder_model
 
 
-# TODO refactor to return encoder model as well
 def load_autoencoder_line_model_27x27():
-    # autoencoder_model = load('lines_27x27/model_autoencoder_v3.1000-0.00212.hdf5')
     autoencoder_model = load('line/conv-autoencoder-line-1544197342-e0950-0.00108.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
-    return autoencoder_model, decoder_model
+    encoder_model = extract_encoder_model(autoencoder_model)
+    return autoencoder_model, encoder_model, decoder_model
 
 
 def load_matrix_encoder_line_model_27x27():
-    # matrix_encoder_model = load('lines_27x27/model_encoder_v1-454-0.000025.hdf5')
-    matrix_encoder_model = load('line/conv-matrix-encoder-line-1544366140-e0411-0.000025.hdf5')
+    matrix_encoder_model = load('line/conv-matrix-encoder-line-1544485883-e0187-0.000034.hdf5')
     return matrix_encoder_model
 
 
@@ -92,18 +90,13 @@ def load_graph_autoencoder_model(vertices, regions, version=1):
 
 
 def extract_decoder_model(autoencoder, show=False):
-    # remove layers from encoder part of auto-encoder
-    for i in range(9):
-        autoencoder.layers.pop(0)
-
     # add new input layer to represent encoded state with 14 numbers
     x = Input(shape=(1, 1, 14))
 
     # relink all the layers again to include new input one in the chain
     y = x
-    layers = [layer for layer in autoencoder.layers]
-    for i in range(len(layers)):
-        y = layers[i](y)
+    for layer in autoencoder.layers[9:]:
+        y = layer(y)
 
     # create new model with this new layer chain
     decoder = Model(inputs=x, outputs=y)
@@ -112,6 +105,19 @@ def extract_decoder_model(autoencoder, show=False):
         decoder.summary()
 
     return decoder
+
+
+def extract_encoder_model(autoencoder, show=False):
+    x = autoencoder.input
+    y = autoencoder.layers[8].output
+
+    # create new model with this new layer chain
+    encoder = Model(inputs=x, outputs=y)
+
+    if show:
+        encoder.summary()
+
+    return encoder
 
 
 def create_autoencoder_model_27x27():
@@ -150,9 +156,9 @@ def create_autoencoder_model_27x27():
         loss=loss.binary_crossentropy)
 
     decoder_model = extract_decoder_model(autoencoder_model)
+    encoder_model = extract_encoder_model(autoencoder_model)
 
-    # TODO refactor to return encoder model as well
-    return autoencoder_model, decoder_model
+    return autoencoder_model, encoder_model, decoder_model
 
 
 def create_matrix_encoder_model():

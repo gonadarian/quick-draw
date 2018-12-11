@@ -32,13 +32,13 @@ def load_images_line_27x27_centered():
 
 
 def load_images_line_27x27_shifted():
-    filename = 'line/line-shifted-samples-1544171724-5815x27x27x1.npy'
+    filename = 'line/line-shifted-samples-1544485663-6242x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
-    assert m == 5815
+    assert m == 6242
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'line/line-shifted-encodings-1544171724-5815x27x27x17.npy'
+    filename = 'line/line-shifted-encodings-1544485663-6242x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 
@@ -46,13 +46,13 @@ def load_images_line_27x27_shifted():
 
 
 def load_images_line_27x27_mixed():
-    filename = 'line/line-mixed-samples-1544185269-5815x27x27x1.npy'
+    filename = 'line/line-mixed-samples-1544485778-6242x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
-    assert m == 5815
+    assert m == 6242
     assert x.shape == (m, 27, 27, 1)
 
-    filename = 'line/line-mixed-encodings-1544185269-5815x27x27x17.npy'
+    filename = 'line/line-mixed-encodings-1544485778-6242x27x27x17.npy'
     y = load(filename)
     assert y.shape == (m, 27, 27, 17)
 

@@ -13,10 +13,8 @@ def gen_shifted(concept, density, dim=27, channels=14, channels_full=17):
     x, m = concept.dataset_centered()
     print("x: ", x.shape)
 
-    autoencoder_model = concept.model_autoencoder()
-    autoencoder_model.outputs = [autoencoder_model.layers[8].output]
-
-    encoding_list = autoencoder_model.predict(x)
+    _, encoder_model, _ = concept.model_autoencoder()
+    encoding_list = encoder_model.predict(x)
     assert encoding_list.shape == (m, 1, 1, channels)
 
     x_list = []

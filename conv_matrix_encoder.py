@@ -23,7 +23,7 @@ def prediction(concept, matrix_encoder_model, x):
     predict_single = False
     predict_multiple = True
 
-    _, decoder_model = concept.model_autoencoder()
+    _, _, decoder_model = concept.model_autoencoder()
 
     if predict_single:
         prediction_single(decoder_model, matrix_encoder_model, x)

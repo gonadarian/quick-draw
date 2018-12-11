@@ -38,6 +38,7 @@ class Concept(Enum):
                  model_matrix_encoder_creator, model_matrix_encoder,
                  model_clustering_creator, model_clustering,
                  dataset_centered, dataset_shifted, dataset_mixed, dataset_clustered):
+
         self.code = code
         self.model_autoencoder_creator = model_autoencoder_creator
         self.model_autoencoder = model_autoencoder
