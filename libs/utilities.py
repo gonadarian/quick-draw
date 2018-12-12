@@ -207,12 +207,14 @@ def get_adjacency_matrix(images, dim=28, show=False):
 
 def get_adjacency_matrix_from_edges(vertices, edge_list, self_connected=True):
     adjacency_matrix = np.zeros((vertices, vertices))
-    adjacency_matrix[edge_list[:, 0], edge_list[:, 1]] = 1
-    adjacency_matrix += adjacency_matrix.T
 
-    if self_connected:
-        diagonal_indexes = range(vertices)
-        adjacency_matrix[diagonal_indexes, diagonal_indexes] = 1
+    if len(edge_list) > 0:
+        adjacency_matrix[edge_list[:, 0], edge_list[:, 1]] = 1
+        adjacency_matrix += adjacency_matrix.T
+
+        if self_connected:
+            diagonal_indexes = range(vertices)
+            adjacency_matrix[diagonal_indexes, diagonal_indexes] = 1
 
     return adjacency_matrix
 

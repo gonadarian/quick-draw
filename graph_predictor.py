@@ -3,9 +3,10 @@ import random as rand
 import libs.models as mdls
 import libs.utilities as utl
 import matplotlib.pyplot as plt
+from libs.concepts import Concept
 
 
-dim = 28
+dim = 27
 embedding_threshold = 0.9
 cluster_threshold = 2
 adjacency_threshold = -30
@@ -14,8 +15,8 @@ channels = 14
 regions = 9
 vertices = 4
 
-random_sample = False
-sample_id = 105121
+random_sample = True
+sample_id = 65165
 analysis = False
 saving = False
 
@@ -24,14 +25,15 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 def load_quick_draw_data_set():
     # TODO use datasets load method
-    data = np.load('generator/data/quick_draw-square.npy')
-    data = data.reshape((-1, dim, dim))
+    data = np.load('generator/data/quickdraw/quickdraw-square.npy')
+    data = data.reshape((-1, 28, 28))[:, :dim, :dim]
     data = data.astype('float32') / 255.
 
     return data
 
 
 def main():
+    concept = Concept.LINE
 
     data_set = load_quick_draw_data_set()
     index = rand.randint(0, len(data_set)) if random_sample else sample_id
@@ -40,12 +42,11 @@ def main():
 
     assert sample.shape == (dim, dim)
 
-    # TODO move away from 28x28 models
-    _, _, decoder_model = mdls.load_autoencoder_line_model()
-    matrix_encoder_model = mdls.load_matrix_encoder_line_model()
-    clustering_model = mdls.load_clustering_line_model()
+    _, _, decoder_model = concept.model_autoencoder()
+    matrix_encoder_model = concept.model_matrix_encoder()
+    clustering_model = concept.model_clustering()
 
-    embeddings = utl.get_embeddings(matrix_encoder_model, sample, threshold=embedding_threshold, show=False)
+    embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
     clusters = utl.extract_clusters(cluster_matrix)
 
@@ -63,13 +64,13 @@ def main():
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
             assert encoding.shape == (channels, )
             assert center.shape == (2, )
-            image = utl.gen_image(decoder_model, encoding, center, show=False)
+            image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
             images.append(image)
             nodes.append(cluster_embedding)
 
-    utl.show_clusters(sample, images)
+    utl.show_clusters(sample, images, dim=dim)
 
-    adjacency_matrix = utl.get_adjacency_matrix(images, show=False)
+    adjacency_matrix = utl.get_adjacency_matrix(images, dim=dim, show=False)
     adjacency_matrix = adjacency_matrix > adjacency_threshold
     print(adjacency_matrix)
 
@@ -104,10 +105,10 @@ def main():
         encoding, center = utl.extract_encoding_and_center(node)
         assert encoding.shape == (channels, )
         assert center.shape == (2, )
-        image = utl.gen_image(decoder_model, encoding, center, show=False)
+        image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
         images.append(image)
 
-    utl.show_clusters(sample, images)
+    utl.show_clusters(sample, images, dim=dim)
 
 
 if __name__ == '__main__':
