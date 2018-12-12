@@ -1,6 +1,7 @@
 import numpy as np
 import random as rand
 import libs.models as mdls
+import libs.datasets as ds
 import libs.utilities as utl
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
@@ -16,29 +17,21 @@ regions = 9
 vertices = 4
 
 random_sample = True
-sample_id = 65165
+sample_index = 65165
 analysis = False
 saving = False
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 
-def load_quick_draw_data_set():
-    # TODO use datasets load method
-    data = np.load('generator/data/quickdraw/quickdraw-square.npy')
-    data = data.reshape((-1, 28, 28))[:, :dim, :dim]
-    data = data.astype('float32') / 255.
-
-    return data
-
-
 def main():
     concept = Concept.LINE
+    quickdraw_category = 'square'
 
-    data_set = load_quick_draw_data_set()
-    index = rand.randint(0, len(data_set)) if random_sample else sample_id
-    print('using quick draw sample', index)
-    sample = data_set[index, :, :]
+    dataset = ds.load_images_quickdraw(quickdraw_category, dim=dim)
+    index = rand.randint(0, len(dataset)) if random_sample else sample_index
+    print('using {} quickdraw sample: {}'.format(quickdraw_category, index))
+    sample = dataset[index, :, :]
 
     assert sample.shape == (dim, dim)
 
@@ -64,6 +57,7 @@ def main():
             encoding, center = utl.extract_encoding_and_center(cluster_embedding)
             assert encoding.shape == (channels, )
             assert center.shape == (2, )
+
             image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
             images.append(image)
             nodes.append(cluster_embedding)
