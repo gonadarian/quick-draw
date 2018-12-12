@@ -18,18 +18,6 @@ def load(filename, custom_objects=None):
     return model
 
 
-def load_autoencoder_line_model():
-    autoencoder_model = load('lines_28x28/lines_autoencoder_v2-385-0.0047.hdf5')
-    decoder_model = extract_decoder_model(autoencoder_model)
-    encoder_model = extract_encoder_model(autoencoder_model)
-    return autoencoder_model, encoder_model, decoder_model
-
-
-def load_matrix_encoder_line_model():
-    matrix_encoder_model = load('lines_28x28/lines_mixed_encoded_v2-091-0.000072.hdf5')
-    return matrix_encoder_model
-
-
 def load_autoencoder_line_model_27x27():
     autoencoder_model = load('line/conv-autoencoder-line-1544197342-e0950-0.00108.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
@@ -152,25 +140,6 @@ def create_autoencoder_model_27x27():
     encoder_model = extract_encoder_model(autoencoder_model)
 
     return autoencoder_model, encoder_model, decoder_model
-
-
-def create_matrix_encoder_model():
-    input_img = Input(shape=(28, 28, 1))
-
-    x = Conv2D(4, (3, 3), activation='relu', padding='same')(input_img)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(12, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(16, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(20, (7, 7), activation='relu', padding='same')(x)
-    x = Conv2D(24, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(28, (5, 5), activation='relu', padding='same')(x)
-    x = Conv2D(22, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(17, (3, 3), activation='tanh', padding='same')(x)
-
-    encoded = x
-
-    model = Model(input_img, encoded)
-    return model
 
 
 def create_matrix_encoder_model_27x27():
