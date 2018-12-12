@@ -94,7 +94,7 @@ def main():
     mappings = mappings.reshape((1, nodes_count, regions))
     nodes = nodes.reshape((1, nodes_count, encoding_dim))
 
-    autoencoder_model = mdls.load_graph_autoencoder_model(vertices, regions, version=4)
+    autoencoder_model = mdls.load_graph_autoencoder_model()
     decoded_nodes = autoencoder_model.predict(x=[nodes, mappings])
     decoded_nodes = decoded_nodes[0, :, :]
     print(decoded_nodes)

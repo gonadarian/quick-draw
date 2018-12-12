@@ -1,3 +1,4 @@
+import time as t
 import numpy as np
 import libs.utilities as utl
 import libs.generators as gens
@@ -108,12 +109,13 @@ def main():
     assert mapping_matrix.shape == (m, vertices, regions)
 
     if saving:
+        timestamp = int(t.time())
         prefix = 'data/square/square-centered'
 
-        np.save('{}-images-{}x{}x{}.npy'.format(prefix, m, dim, dim), image_list)
-        np.save('{}-vertices-{}x{}x{}.npy'.format(prefix, m, vertices, channels_full), vertex_matrix)
-        np.save('{}-edges-{}x{}x2.npy'.format(prefix, m, vertices), edge_matrix)
-        np.save('{}-mappings-{}x{}x{}.npy'.format(prefix, m, vertices, regions), mapping_matrix)
+        np.save('{}-images-{}-{}x{}x{}.npy'.format(prefix, timestamp, m, dim, dim), image_list)
+        np.save('{}-vertices-{}-{}x{}x{}.npy'.format(prefix, timestamp, m, vertices, channels_full), vertex_matrix)
+        np.save('{}-edges-{}-{}x{}x2.npy'.format(prefix, timestamp, m, vertices), edge_matrix)
+        np.save('{}-mappings-{}-{}x{}x{}.npy'.format(prefix, timestamp, m, vertices, regions), mapping_matrix)
 
 
 if __name__ == '__main__':

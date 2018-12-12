@@ -6,7 +6,7 @@ import keras.losses as loss
 import keras.metrics as metric
 import keras.optimizers as optimizer
 from libs.losses import absolute_loss
-from libs.layers import GraphConv, GraphConvV2, Graph2Col
+from libs.layers import GraphConv, Graph2Col
 from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
 
@@ -14,6 +14,7 @@ from keras.layers import Input, Conv2D, UpSampling2D, Dense, Lambda
 def load(filename, custom_objects=None):
     path = os.path.join(os.path.dirname(__file__), '../models/', filename)
     model = load_model(path, custom_objects)
+    print('LOADED MODEL from path {}'.format(path))
     return model
 
 
@@ -63,28 +64,20 @@ def load_clustering_ellipse_model():
     return clustering_model
 
 
-def load_graph_autoencoder_model(vertices, regions, version=1):
+def load_graph_autoencoder_model():
     custom_objects = {
         'tf': tf,
-        'node_count': vertices,
-        'region_count': regions,
         'Graph2Col': Graph2Col,
         'GraphConv': GraphConv,
-        'GraphConvV2': GraphConvV2,
-    }
-    versions = {
-        1: 'graphs/model_autoencoder_v1.09500-0.000011.hdf5',
-        2: 'graphs/model_autoencoder_v2.08800-0.000009.hdf5',
-        3: 'graphs/model_autoencoder_v3.09700-0.000008.hdf5',
-        4: 'graphs/model_autoencoder_v4.b32.09900-0.000008.hdf5',
-        5: 'graphs/model_autoencoder_v5.b32.09900-0.000007.hdf5',
     }
 
-    autoencoder_model = load(versions[version], custom_objects)
+    autoencoder_model = load('square/graph-autoencoder-square-1544607431-e09900-0.000003.hdf5', custom_objects)
     autoencoder_model.compile(
         optimizer=optimizer.Adam(),
         loss=loss.binary_crossentropy,
         metrics=[metric.mean_absolute_error, metric.binary_accuracy])
+
+    # TODO extract encoder and decoder models as well
 
     return autoencoder_model
 
@@ -243,13 +236,13 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
 
     with tf.name_scope('Encoder'):
         for layer, units in enumerate(units_list[1:-2:1]):
-            encoding = GraphConvV2(units, name='GraphConv_Enc_{}'.format(layer + 1))([
+            encoding = GraphConv(units, name='GraphConv_Enc_{}'.format(layer + 1))([
                 encoding,
                 nodes_indices,
                 column_indices])
 
         # TODO merge this into the above loop
-        encoding = GraphConvV2(embedding_units, activation='tanh', name='GraphConv_Enc_{}'.format(layer + 2))([
+        encoding = GraphConv(embedding_units, activation='tanh', name='GraphConv_Enc_{}'.format(layer + 2))([
             encoding,
             nodes_indices,
             column_indices])
@@ -261,13 +254,13 @@ def create_graph_autoencoder_model(units_list, node_count, region_count):
 
     with tf.name_scope('Decoder'):
         for layer, units in enumerate(units_list[-2:1:-1]):
-            decoding = GraphConvV2(units, name='GraphConv_Dec_{}'.format(layer + 1))([
+            decoding = GraphConv(units, name='GraphConv_Dec_{}'.format(layer + 1))([
                 decoding,
                 nodes_indices,
                 column_indices])
 
         # TODO merge this into the above loop
-        decoding = GraphConvV2(input_units, activation='tanh', name='GraphConv_Dec_{}'.format(layer + 2))([
+        decoding = GraphConv(input_units, activation='tanh', name='GraphConv_Dec_{}'.format(layer + 2))([
             decoding,
             nodes_indices,
             column_indices])

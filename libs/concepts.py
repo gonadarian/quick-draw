@@ -33,6 +33,20 @@ class Concept(Enum):
         ds.load_images_ellipse_27x27_clustered,
     )
 
+    SQUARE = (
+        'square',
+        mdls.create_graph_autoencoder_model,
+        mdls.load_graph_autoencoder_model,
+        None,
+        None,
+        None,
+        None,
+        ds.load_graphs_square_centered,
+        None,
+        None,
+        None,
+    )
+
     def __init__(self, code,
                  model_autoencoder_creator, model_autoencoder,
                  model_matrix_encoder_creator, model_matrix_encoder,

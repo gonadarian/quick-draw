@@ -5,6 +5,7 @@ import numpy as np
 def load(filename):
     path = os.path.join(os.path.dirname(__file__), '../generator/data/', filename)
     dataset = np.load(path)
+    print('LOADED DATASET from path {} with shape'.format(path, dataset.shape))
     return dataset
 
 
@@ -138,10 +139,15 @@ def load_images_ellipse_27x27_clustered():
     return x, y, m
 
 
-def load_encoding_clusters():
-    x = load('encoding-clusters-v2-7234x10x2x17.npy')
-    assert x.shape == (7234, 10, 2, 17)
-    return x
+def load_graphs_square_centered():
+    vertices_list = load('square/square-centered-vertices-1544545197-114x4x17.npy')
+    m = len(vertices_list)
+    assert vertices_list.shape == (m, 4, 17)
+
+    mappings_list = load('square/square-centered-mappings-1544545197-114x4x9.npy')
+    assert mappings_list.shape == (m, 4, 9)
+
+    return vertices_list, mappings_list, m
 
 
 def load_graph_lines():
@@ -154,21 +160,3 @@ def load_graph_edges():
     edges = load('graph-edges.npy')
     assert edges.shape[1:] == (2, )
     return edges
-
-
-def load_graph_lines_set():
-    nodes = load('graph-lines-set-v1-146x4x17.npy')
-    assert nodes.shape[1:] == (4, 17)
-    return nodes
-
-
-def load_graph_edges_set():
-    edges = load('graph-edges-set-v1-146x4x2.npy')
-    assert edges.shape[1:] == (4, 2)
-    return edges
-
-
-def load_graph_mapping_set():
-    mappings = load('graph-mapping-set-v1-146x4x9.npy')
-    assert mappings.shape[1:] == (4, 9)
-    return mappings
