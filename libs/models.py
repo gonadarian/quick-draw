@@ -18,14 +18,14 @@ def load(filename, custom_objects=None):
     return model
 
 
-def load_autoencoder_line_model_27x27():
+def load_autoencoder_line_model():
     autoencoder_model = load('line/conv-autoencoder-line-1544197342-e0950-0.00108.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
     encoder_model = extract_encoder_model(autoencoder_model)
     return autoencoder_model, encoder_model, decoder_model
 
 
-def load_matrix_encoder_line_model_27x27():
+def load_matrix_encoder_line_model():
     matrix_encoder_model = load('line/conv-matrix-encoder-line-1544485883-e0187-0.000034.hdf5')
     return matrix_encoder_model
 
@@ -36,13 +36,13 @@ def load_clustering_line_model():
 
 
 # TODO refactor to return encoder model as well
-def load_autoencoder_ellipse_model_27x27():
+def load_autoencoder_ellipse_model():
     autoencoder_model = load('ellipse/conv-autoencoder-ellipse-1544114775-e0980-0.00196.hdf5')
     decoder_model = extract_decoder_model(autoencoder_model)
     return autoencoder_model, decoder_model
 
 
-def load_matrix_encoder_ellipse_model_27x27():
+def load_matrix_encoder_ellipse_model():
     matrix_encoder_model = load('ellipse/conv-matrix-encoder-ellipse-1544229426-e0301-0.002483.hdf5')
     return matrix_encoder_model
 
@@ -101,7 +101,7 @@ def extract_encoder_model(autoencoder, show=False):
     return encoder
 
 
-def create_autoencoder_model_27x27():
+def create_autoencoder_model():
     input_image = Input(shape=(27, 27, 1))
 
     encoding = input_image
@@ -142,7 +142,7 @@ def create_autoencoder_model_27x27():
     return autoencoder_model, encoder_model, decoder_model
 
 
-def create_matrix_encoder_model_27x27():
+def create_matrix_encoder_model():
     input_image = Input(shape=(27, 27, 1))
 
     x = input_image

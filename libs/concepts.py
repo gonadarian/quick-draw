@@ -7,30 +7,30 @@ class Concept(Enum):
 
     LINE = (
         'line',
-        mdls.create_autoencoder_model_27x27,
-        mdls.load_autoencoder_line_model_27x27,
-        mdls.create_matrix_encoder_model_27x27,
-        mdls.load_matrix_encoder_line_model_27x27,
+        mdls.create_autoencoder_model,
+        mdls.load_autoencoder_line_model,
+        mdls.create_matrix_encoder_model,
+        mdls.load_matrix_encoder_line_model,
         mdls.create_clustering_model,
         mdls.load_clustering_line_model,
-        ds.load_images_line_27x27_centered,
-        ds.load_images_line_27x27_shifted,
-        ds.load_images_line_27x27_mixed,
-        ds.load_images_line_27x27_clustered,
+        ds.load_images_line_centered,
+        ds.load_images_line_shifted,
+        ds.load_images_line_mixed,
+        ds.load_images_line_clustered,
     )
 
     ELLIPSE = (
         'ellipse',
-        mdls.create_autoencoder_model_27x27,
-        mdls.load_autoencoder_ellipse_model_27x27,
-        mdls.create_matrix_encoder_model_27x27,
-        mdls.load_matrix_encoder_ellipse_model_27x27,
+        mdls.create_autoencoder_model,
+        mdls.load_autoencoder_ellipse_model,
+        mdls.create_matrix_encoder_model,
+        mdls.load_matrix_encoder_ellipse_model,
         mdls.create_clustering_model,
         mdls.load_clustering_ellipse_model,
-        ds.load_images_ellipse_27x27_centered,
-        ds.load_images_ellipse_27x27_shifted,
-        ds.load_images_ellipse_27x27_mixed,
-        ds.load_images_ellipse_27x27_clustered,
+        ds.load_images_ellipse_centered,
+        ds.load_images_ellipse_shifted,
+        ds.load_images_ellipse_mixed,
+        ds.load_images_ellipse_clustered,
     )
 
     SQUARE = (

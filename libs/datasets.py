@@ -19,7 +19,7 @@ def load_images_quickdraw(category, dim):
     return x
 
 
-def load_images_line_27x27_centered():
+def load_images_line_centered():
     x = load('line/line-centered-1544186065-364x27x27.npy')
     m = x.shape[0]
     assert m == 364
@@ -32,7 +32,7 @@ def load_images_line_27x27_centered():
     return x, m
 
 
-def load_images_line_27x27_shifted():
+def load_images_line_shifted():
     filename = 'line/line-shifted-samples-1544485663-6242x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
@@ -46,7 +46,7 @@ def load_images_line_27x27_shifted():
     return x, y, m
 
 
-def load_images_line_27x27_mixed():
+def load_images_line_mixed():
     filename = 'line/line-mixed-samples-1544485778-6242x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
@@ -60,7 +60,7 @@ def load_images_line_27x27_mixed():
     return x, y, m
 
 
-def load_images_line_27x27_clustered():
+def load_images_line_clustered():
     filename = 'line/line-clustered-1544541841-6242x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
@@ -79,7 +79,7 @@ def load_images_line_27x27_clustered():
     return x, y, m
 
 
-def load_images_ellipse_27x27_centered():
+def load_images_ellipse_centered():
     x = load('ellipse/ellipse-centered-1544185820-2028x27x27.npy')
     m = x.shape[0]
     assert m == 2028
@@ -92,7 +92,7 @@ def load_images_ellipse_27x27_centered():
     return x, m
 
 
-def load_images_ellipse_27x27_shifted():
+def load_images_ellipse_shifted():
     filename = 'ellipse/ellipse-shifted-samples-1544172002-8592x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
@@ -106,7 +106,7 @@ def load_images_ellipse_27x27_shifted():
     return x, y, m
 
 
-def load_images_ellipse_27x27_mixed():
+def load_images_ellipse_mixed():
     filename = 'ellipse/ellipse-mixed-samples-1544185490-8592x27x27x1.npy'
     x = load(filename)
     m = x.shape[0]
@@ -120,7 +120,7 @@ def load_images_ellipse_27x27_mixed():
     return x, y, m
 
 
-def load_images_ellipse_27x27_clustered():
+def load_images_ellipse_clustered():
     filename = 'ellipse/ellipse-clustered-1544307680-8592x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
