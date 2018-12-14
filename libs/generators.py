@@ -121,3 +121,18 @@ def get_graph(decoder_model, encoder_model, clustering_model, sample,
         utl.draw_graph(edge_list)
 
     return np.array(vertex_list), np.array(edge_list)
+
+
+def calc_image_center(image):
+    indices = np.argwhere(image > 0)
+    m = len(indices)
+
+    pixels = image[indices[:, 0], indices[:, 1]].reshape(m, 1)
+    pixels_sum = np.sum(pixels)
+
+    weighted = np.multiply(pixels, indices)
+    weighted = np.sum(weighted, axis=0)
+    weighted = weighted / pixels_sum
+    weighted = np.rint(weighted).astype(np.int64)
+
+    return weighted

@@ -139,6 +139,20 @@ def load_images_ellipse_clustered():
     return x, y, m
 
 
+def load_images_bezier_centered():
+    x = load('bezier/bezier_centered_1544805782_10000x27x27.npy')
+    m = x.shape[0]
+    assert m == 10000
+    assert x.shape == (m, 27, 27)
+
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (m, 27, 27, 1))
+    assert x.shape == (m, 27, 27, 1)
+
+    return x, m
+
+
+
 def load_graphs_square_centered():
     vertices_list = load('square/square-centered-vertices-1544545197-114x4x17.npy')
     m = len(vertices_list)

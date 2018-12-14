@@ -88,19 +88,39 @@ def calc_center_debug(x):
 def calc_center(x):
     indices = np.argwhere(x > 0)
     m = len(indices)
+
     pixels = x[indices[:, 0], indices[:, 1]].reshape(m, 1)
-    weighted = np.rint(np.average(np.multiply(pixels, indices) / 255, axis=0)).astype(np.int64)
+    pixels_sum = np.sum(pixels)
+
+    weighted = np.multiply(pixels, indices)
+    weighted = np.sum(weighted, axis=0)
+    weighted = weighted / pixels_sum
+    weighted = np.rint(weighted).astype(np.int64)
 
     return weighted
 
 
-def test_agg_symbols(randomize=True, debug=False):
-    image = Image.new("L", (27, 27))  # last part is image dimensions
-    draw = agg.Draw(image)
-    outline = agg.Pen("white", 1)  # 5 is the outline width in pixels
-
+def draw_agg_symbol(randomize=True, debug=False):
     if randomize:
-        coords = np.random.randint(0, 27, size=6, dtype=np.uint8).tolist()
+        # coords = np.array([1, 2, 2, 4, 8, 16])  # collinear
+        # coords = np.array([1, 2, 2, 2, 8, 16])  # too near
+        coords = np.random.randint(0, 27, size=6, dtype=np.uint8)
+        c1, c2, c3 = np.split(coords, 3)
+        # c2 = coords[0:2]
+        # c2 = coords[2:4]
+        # c3 = coords[4:6]
+        too_near = (np.linalg.norm(c1 - c2) < 2 or
+                    np.linalg.norm(c2 - c3) < 2 or
+                    np.linalg.norm(c3 - c1) < 2)
+        if too_near:
+            print('coords {} are too near'.format(coords))
+            return False
+        collinear = np.cross(c1 - c2, c1 - c3)
+        collinear = collinear == 0
+        if collinear:
+            print('coords {} are collinear'.format(coords))
+            return False
+
         path_string = "m{},{} q{},{},{},{}".format(*coords)
     else:
         # path_string = "m0,0 c24,2,2,24,26,26"
@@ -108,6 +128,10 @@ def test_agg_symbols(randomize=True, debug=False):
         path_string = "m15,15 q19,8,21,25"
 
     print(path_string)
+
+    image = Image.new("L", (27, 27))  # last part is image dimensions
+    draw = agg.Draw(image)
+    outline = agg.Pen("white", 1)  # 5 is the outline width in pixels
 
     symbol = agg.Symbol(path_string)
     xy = (0, 0)  # xy position to place symbol
@@ -132,24 +156,11 @@ def test_agg_symbols(randomize=True, debug=False):
     # print(weighted.shape, weighted)
 
 
-# def test_opencv():
-#     # Create a black image
-#     img = np.zeros((27, 27, 1), np.uint8)
-#     # Draw a diagonal blue line with thickness of 5 px
-#     img = cv.line(img, (1, 1), (25, 25), (255), 1)
-#     cv.imshow('image', img)
-#     cv.waitKey(0)
-#     timestamp = int(t.time())
-#     cv.imwrite('opencv_test_{}.png'.format(timestamp), img)
-#     cv.destroyAllWindows()
-
-
 # for i in range(100):
-#     test_agg_symbols()
+#     draw_agg_symbol()
 
-test_agg_symbols(randomize=True, debug=True)
+draw_agg_symbol(randomize=True, debug=True)
 
-# test_opencv()
 # draw_image_agg(27, [2, 10], drawer=ellipse_drawer, rotate=30, show=True)
 
 print('end')

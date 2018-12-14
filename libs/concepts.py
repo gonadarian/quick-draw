@@ -33,6 +33,20 @@ class Concept(Enum):
         ds.load_images_ellipse_clustered,
     )
 
+    BEZIER = (
+        'bezier',
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        ds.load_images_bezier_centered,
+        None,
+        None,
+        None,
+    )
+
     SQUARE = (
         'square',
         mdls.create_graph_autoencoder_model,

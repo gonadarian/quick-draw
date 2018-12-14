@@ -125,5 +125,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
+    main(Concept.BEZIER)
 
     print('end')
