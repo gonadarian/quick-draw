@@ -38,7 +38,7 @@ class Concept(Enum):
         mdls.create_autoencoder_model,
         mdls.load_autoencoder_bezier_model,
         mdls.create_matrix_encoder_model,
-        None,
+        mdls.load_matrix_encoder_bezier_model,
         mdls.create_clustering_model,
         None,
         ds.load_images_bezier_centered,
