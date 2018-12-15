@@ -60,7 +60,7 @@ def mix_samples(samples, encodings, index_1, index_2):
 def generated_shifted_samples(sample, dim, density=0.3):
     assert sample.shape == (dim, dim)
 
-    [empty_rows, empty_cols] = np.amin(np.where(sample == 1), axis=1)
+    [empty_rows, empty_cols] = np.amin(np.where(sample > 0), axis=1)
     sub_image = sample[empty_rows:dim - empty_rows, empty_cols:dim - empty_cols]
 
     # lines are not centered after all.... so +1/-1 on couple of places :(

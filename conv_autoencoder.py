@@ -82,8 +82,7 @@ def analysis_2(decoder_model):
 
 def main(concept):
 
-    autoencoder_model, encoder_model, decoder_model = (concept.model_autoencoder() if preload else
-                                                       concept.model_autoencoder_creator())
+    autoencoder_model, encoder_model, decoder_model = concept.get_model_autoencoder(trained=preload)
     autoencoder_model.summary()
 
     x, _ = concept.dataset_centered()

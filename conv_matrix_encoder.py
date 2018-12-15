@@ -86,9 +86,7 @@ def analysis(embeddings):
 
 
 def main(concept):
-
-    matrix_encoder_model = (concept.model_matrix_encoder() if preload else
-                            concept.model_matrix_encoder_creator())
+    matrix_encoder_model = concept.get_model_matrix_encoder(trained=preload)
     matrix_encoder_model.summary()
 
     x, y, m = concept.dataset_mixed()

@@ -78,3 +78,15 @@ class Concept(Enum):
         self.dataset_shifted = dataset_shifted
         self.dataset_mixed = dataset_mixed
         self.dataset_clustered = dataset_clustered
+
+    def get_model_autoencoder(self, trained=True):
+        return (self.model_autoencoder() if trained else
+                self.model_autoencoder_creator())
+
+    def get_model_matrix_encoder(self, trained=True):
+        return (self.model_matrix_encoder() if trained else
+                self.model_matrix_encoder_creator())
+
+    def get_model_clustering(self, trained=True):
+        return (self.model_clustering() if trained else
+                self.model_clustering_creator())

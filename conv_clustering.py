@@ -35,9 +35,7 @@ def prediction(concept, clustering_model):
 
 
 def main(concept):
-
-    clustering_model = (concept.model_clustering() if preload else
-                        concept.model_clustering_creator())
+    clustering_model = concept.get_model_clustering(trained=preload)
     clustering_model.summary()
 
     x, y, _ = concept.dataset_clustered()
