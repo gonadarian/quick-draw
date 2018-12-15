@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = True
+train = False
 preload = not train
 predict = True
 analyze_1 = False

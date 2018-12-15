@@ -20,8 +20,8 @@ def load(filename, custom_objects=None):
 
 def load_autoencoder_line_model():
     autoencoder_model = load('line/conv-autoencoder-line-1544197342-e0950-0.00108.hdf5')
-    decoder_model = extract_decoder_model(autoencoder_model)
     encoder_model = extract_encoder_model(autoencoder_model)
+    decoder_model = extract_decoder_model(autoencoder_model)
     return autoencoder_model, encoder_model, decoder_model
 
 
@@ -35,11 +35,11 @@ def load_clustering_line_model():
     return clustering_model
 
 
-# TODO refactor to return encoder model as well
 def load_autoencoder_ellipse_model():
     autoencoder_model = load('ellipse/conv-autoencoder-ellipse-1544114775-e0980-0.00196.hdf5')
+    encoder_model = extract_encoder_model(autoencoder_model)
     decoder_model = extract_decoder_model(autoencoder_model)
-    return autoencoder_model, decoder_model
+    return autoencoder_model, encoder_model, decoder_model
 
 
 def load_matrix_encoder_ellipse_model():
@@ -50,6 +50,13 @@ def load_matrix_encoder_ellipse_model():
 def load_clustering_ellipse_model():
     clustering_model = load('ellipse/conv-clustering-ellipse-1544360371-e0920-0.001776.hdf5')
     return clustering_model
+
+
+def load_autoencoder_bezier_model():
+    autoencoder_model = load('bezier/conv-autoencoder-bezier-1544807030-e0250-0.03416.hdf5')
+    encoder_model = extract_encoder_model(autoencoder_model)
+    decoder_model = extract_decoder_model(autoencoder_model)
+    return autoencoder_model, encoder_model, decoder_model
 
 
 def load_graph_autoencoder_model():

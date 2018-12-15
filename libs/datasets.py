@@ -140,7 +140,7 @@ def load_images_ellipse_clustered():
 
 
 def load_images_bezier_centered():
-    x = load('bezier/bezier_centered_1544805782_10000x27x27.npy')
+    x = load('bezier/bezier_centered_1544806339_10000x27x27.npy')
     m = x.shape[0]
     assert m == 10000
     assert x.shape == (m, 27, 27)
@@ -150,7 +150,6 @@ def load_images_bezier_centered():
     assert x.shape == (m, 27, 27, 1)
 
     return x, m
-
 
 
 def load_graphs_square_centered():

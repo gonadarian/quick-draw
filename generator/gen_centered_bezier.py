@@ -108,7 +108,11 @@ def main(concept):
         if i % 100 == 0:
             print('starting sample', i)
 
-        image = generate_image(dim, show=False)
+        image = None
+        while image is None:
+            image = generate_image(dim, show=False)
+
+        assert image.shape == (27, 27)
         images.append(image)
 
     images = np.array(images)
