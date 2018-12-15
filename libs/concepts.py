@@ -42,8 +42,8 @@ class Concept(Enum):
         mdls.create_clustering_model,
         None,
         ds.load_images_bezier_centered,
-        None,
-        None,
+        ds.load_images_bezier_shifted,
+        ds.load_images_bezier_mixed,
         None,
     )
 

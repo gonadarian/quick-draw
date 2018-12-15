@@ -11,7 +11,7 @@ dim = 27
 channels = 14
 channels_full = 17
 
-train = False
+train = True
 preload = not train
 predict = True
 analyze = False
@@ -119,5 +119,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
+    main(Concept.BEZIER)
 
     print('end')

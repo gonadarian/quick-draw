@@ -152,6 +152,34 @@ def load_images_bezier_centered():
     return x, m
 
 
+def load_images_bezier_shifted():
+    filename = 'bezier/bezier-shifted-samples-1544883380-32822x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 32822
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'bezier/bezier-shifted-encodings-1544883380-32822x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
+def load_images_bezier_mixed():
+    filename = 'bezier/bezier-mixed-samples-1544884501-32822x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 32822
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'bezier/bezier-mixed-encodings-1544884501-32822x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
 def load_graphs_square_centered():
     vertices_list = load('square/square-centered-vertices-1544545197-114x4x17.npy')
     m = len(vertices_list)

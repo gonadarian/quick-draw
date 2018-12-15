@@ -38,5 +38,6 @@ if __name__ == '__main__':
 
     gen_mixed(Concept.LINE)
     gen_mixed(Concept.ELLIPSE)
+    gen_mixed(Concept.BEZIER)
 
     print('end')
