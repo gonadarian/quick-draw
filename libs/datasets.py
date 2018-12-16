@@ -5,7 +5,7 @@ import numpy as np
 def load(filename):
     path = os.path.join(os.path.dirname(__file__), '../generator/data/', filename)
     dataset = np.load(path)
-    print('LOADED DATASET from path {} with shape'.format(path, dataset.shape))
+    print('LOADED DATASET from path {} with shape {}'.format(path, dataset.shape))
     return dataset
 
 

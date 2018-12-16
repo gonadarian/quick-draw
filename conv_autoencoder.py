@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = False
+train = True
 preload = not train
 predict = True
 analyze_1 = False
@@ -80,7 +80,7 @@ def analysis_2(decoder_model):
         sample[0, 0, 0, 0] += 0.1
 
 
-def main(concept):
+def main(concept, batch_size=64, period=10):
 
     autoencoder_model, encoder_model, decoder_model = concept.get_model_autoencoder(trained=preload)
     autoencoder_model.summary()
@@ -89,7 +89,6 @@ def main(concept):
 
     if train:
         epochs = 1000
-        batch_size = 64
         timestamp = int(t.time())
 
         model_name = 'conv-autoencoder-{}-{}'.format(concept.code, timestamp)
@@ -104,7 +103,7 @@ def main(concept):
             validation_data=(x, x),
             callbacks=[
                 TensorBoard(log_dir=log_dir),
-                ModelCheckpoint(filepath=filepath, save_best_only=True, period=10)
+                ModelCheckpoint(filepath=filepath, save_best_only=True, period=period)
             ]
         )
 
@@ -124,6 +123,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
-    main(Concept.BEZIER)
+    main(Concept.BEZIER, batch_size=512, period=1)
 
     print('end')
