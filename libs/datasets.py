@@ -180,6 +180,25 @@ def load_images_bezier_mixed():
     return x, y, m
 
 
+def load_images_bezier_clustered():
+    filename = 'bezier/bezier-clustered-1544920533-32822x10x2x17.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 32822
+    assert x.shape == (m, 10, 2, 17)
+
+    # TODO pair count, 10, should be a parameter of this method
+    x = x.reshape((m * 10, 34))
+    m = x.shape[0]
+
+    # TODO this code is used in more places, should be extracted
+    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10)
+    y = y.reshape((m, 1))
+    assert y.shape == (m, 1)
+
+    return x, y, m
+
+
 def load_graphs_square_centered():
     vertices_list = load('square/square-centered-vertices-1544545197-114x4x17.npy')
     m = len(vertices_list)

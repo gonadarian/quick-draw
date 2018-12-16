@@ -64,6 +64,11 @@ def load_matrix_encoder_bezier_model():
     return matrix_encoder_model
 
 
+def load_clustering_bezier_model():
+    clustering_model = load('bezier/conv-clustering-bezier-1544921335-e0116-0.400680.hdf5')
+    return clustering_model
+
+
 def load_graph_autoencoder_model():
     custom_objects = {
         'tf': tf,

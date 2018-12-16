@@ -7,6 +7,7 @@ class Concept(Enum):
 
     LINE = (
         'line',
+        1.,
         mdls.create_autoencoder_model,
         mdls.load_autoencoder_line_model,
         mdls.create_matrix_encoder_model,
@@ -21,6 +22,7 @@ class Concept(Enum):
 
     ELLIPSE = (
         'ellipse',
+        1.,
         mdls.create_autoencoder_model,
         mdls.load_autoencoder_ellipse_model,
         mdls.create_matrix_encoder_model,
@@ -35,20 +37,22 @@ class Concept(Enum):
 
     BEZIER = (
         'bezier',
+        0.2,
         mdls.create_autoencoder_model,
         mdls.load_autoencoder_bezier_model,
         mdls.create_matrix_encoder_model,
         mdls.load_matrix_encoder_bezier_model,
         mdls.create_clustering_model,
-        None,
+        mdls.load_clustering_bezier_model,
         ds.load_images_bezier_centered,
         ds.load_images_bezier_shifted,
         ds.load_images_bezier_mixed,
-        None,
+        ds.load_images_bezier_clustered,
     )
 
     SQUARE = (
         'square',
+        1.,
         mdls.create_graph_autoencoder_model,
         mdls.load_graph_autoencoder_model,
         None,
@@ -61,13 +65,14 @@ class Concept(Enum):
         None,
     )
 
-    def __init__(self, code,
+    def __init__(self, code, sample_threshold,
                  model_autoencoder_creator, model_autoencoder,
                  model_matrix_encoder_creator, model_matrix_encoder,
                  model_clustering_creator, model_clustering,
                  dataset_centered, dataset_shifted, dataset_mixed, dataset_clustered):
 
         self.code = code
+        self.sample_threshold = sample_threshold
         self.model_autoencoder_creator = model_autoencoder_creator
         self.model_autoencoder = model_autoencoder
         self.model_matrix_encoder_creator = model_matrix_encoder_creator

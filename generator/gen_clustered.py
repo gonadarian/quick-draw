@@ -9,21 +9,26 @@ def gen_clustered(concept, dim=27, channels_full=17):
 
     samples, _, m = concept.dataset_shifted()
     encoder_model = concept.model_matrix_encoder()
+    sample_threshold = concept.sample_threshold
 
     # total is twice the size, half for positive pairs, half for negative ones
     pairs_per_sample = 5
 
     # takes a minute or two...
     print('start encoding lists...')
-    encoding_lists = []
+    encodings_list = []
+
+    predictions = encoder_model.predict(samples)
+    assert predictions.shape == (m, dim, dim, channels_full)
 
     for i in range(m):
         if i % 100 == 0:
             print('\tencoding is at', i)
 
         sample = samples[i, :, :, 0]
-        encoding_list = utl.get_embeddings(encoder_model, sample, dim=dim, show=False)
-        encoding_lists.append(encoding_list)
+        prediction = predictions[i]
+        encoding_list = utl.get_embeddings_from_prediction(prediction, sample, dim=dim, threshold=sample_threshold)
+        encodings_list.append(encoding_list)
 
     print('start pairing...')
     other_indexes = rand.sample(range(m), m)
@@ -36,8 +41,14 @@ def gen_clustered(concept, dim=27, channels_full=17):
         if i % 100 == 0:
             print('\tpairing is at', i)
 
-        encodings = encoding_lists[i]
-        other_encodings = encoding_lists[other_indexes[i]]
+        encodings = encodings_list[i]
+        other_encodings = encodings_list[other_indexes[i]]
+
+        if len(encodings) == 0 or len(other_encodings) == 0:
+            print('problem with sample i:', i,
+                  'encodings shape:', encodings.shape,
+                  'other encodings shape:', other_encodings.shape)
+            continue
 
         # positive pairs that should match
         pair_indexes = np.random.randint(len(encodings), size=(2, pairs_per_sample))
@@ -63,5 +74,6 @@ if __name__ == '__main__':
 
     gen_clustered(Concept.LINE)
     gen_clustered(Concept.ELLIPSE)
+    gen_clustered(Concept.BEZIER)
 
     print('end')

@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 dim = 27
 
-train = False
+train = True
 preload = not train
 predict = True
 
@@ -23,9 +23,10 @@ def prediction(concept, clustering_model):
     x_pair = x[indices]
 
     matrix_encoder_model = concept.model_matrix_encoder()
+    sample_threshold = concept.sample_threshold
 
-    embeddings_1 = utl.get_embeddings(matrix_encoder_model, x_pair[0, :, :, 0], dim=dim)
-    embeddings_2 = utl.get_embeddings(matrix_encoder_model, x_pair[1, :, :, 0], dim=dim)
+    embeddings_1 = utl.get_embeddings(matrix_encoder_model, x_pair[0, :, :, 0], dim=dim, threshold=sample_threshold)
+    embeddings_2 = utl.get_embeddings(matrix_encoder_model, x_pair[1, :, :, 0], dim=dim, threshold=sample_threshold)
     embeddings_mix = np.concatenate((embeddings_1, embeddings_2), axis=0)
     assert embeddings_mix.shape[1:] == (17,)
 
@@ -34,7 +35,8 @@ def prediction(concept, clustering_model):
     print(clusters)
 
 
-def main(concept):
+def main(concept, batch_size=32):
+
     clustering_model = concept.get_model_clustering(trained=preload)
     clustering_model.summary()
 
@@ -43,7 +45,6 @@ def main(concept):
     if train:
 
         epochs = 1000
-        batch_size = 32
         timestamp = int(t.time())
 
         model_name = 'conv-clustering-{}-{}'.format(concept.code, timestamp)
@@ -58,7 +59,7 @@ def main(concept):
             validation_data=(x, y),
             callbacks=[
                 TensorBoard(log_dir=log_dir),
-                ModelCheckpoint(filepath=filepath, save_best_only=True, period=5)
+                ModelCheckpoint(filepath=filepath, save_best_only=True, period=1)
             ]
         )
 
@@ -70,5 +71,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
+    main(Concept.BEZIER, batch_size=256)
 
     print('end')

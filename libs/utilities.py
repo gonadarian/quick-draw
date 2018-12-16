@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
+# TODO use get_embeddings_from_prediction internally, don't duplicate code, or do something eve better!
 def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     # prepare sample
     assert sample.shape == (dim, dim)
@@ -19,6 +20,27 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
 
     # extract relevant pixels
     sample = sample.reshape(dim, dim)
+    idx_sample = np.argwhere(sample >= threshold)
+    assert idx_sample.shape[1:] == (2, )
+    embeddings = prediction[idx_sample[:, 0], idx_sample[:, 1], :]
+
+    # convert from relative positions which can't be compared,
+    # to absolute ones suitable for k-means clustering
+    centers = idx_sample[:, [1, 0]] / (dim - 1) - .5 + embeddings[:, 1:3]
+    embeddings[:, 1:3] = centers
+
+    if show:
+        plt.imshow(sample)
+        plt.show()
+
+    return embeddings
+
+
+def get_embeddings_from_prediction(prediction, sample, dim=28, threshold=1, show=False):
+    assert sample.shape == (dim, dim)
+    assert prediction.shape == (dim, dim, 17)
+
+    # extract relevant pixels
     idx_sample = np.argwhere(sample >= threshold)
     assert idx_sample.shape[1:] == (2, )
     embeddings = prediction[idx_sample[:, 0], idx_sample[:, 1], :]

@@ -17,7 +17,7 @@ channels = 14
 
 quick_draw_data = True
 custom_shape = 3
-analysis = True
+analysis = False
 saving = False
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
@@ -27,6 +27,7 @@ def load_quickdraw_dataset(concept):
     switcher = {
         Concept.LINE: 'triangle',
         Concept.ELLIPSE: 'circle',
+        Concept.BEZIER: 'animal_migration',  # 'rainbow',
     }
 
     category = switcher.get(concept)
@@ -130,5 +131,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
+    main(Concept.BEZIER)
 
     print('end')
