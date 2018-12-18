@@ -37,7 +37,7 @@ class Concept(Enum):
 
     BEZIER = (
         'bezier',
-        0.2,
+        1.,
         mdls.create_autoencoder_model,
         mdls.load_autoencoder_bezier_model,
         mdls.create_matrix_encoder_model,

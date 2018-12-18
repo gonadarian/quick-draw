@@ -151,9 +151,9 @@ def load_images_ellipse_clustered():
 
 
 def load_images_bezier_centered():
-    x = load('bezier/bezier_centered_1544806339_10000x27x27.npy')
+    x = load('bezier/bezier-centered-1545096834-1000x27x27.npy')
     m = x.shape[0]
-    assert m == 10000
+    assert m == 1000
     assert x.shape == (m, 27, 27)
 
     x = x.astype('float32') / 255.

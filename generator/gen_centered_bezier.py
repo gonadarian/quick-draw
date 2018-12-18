@@ -112,7 +112,7 @@ def main(concept):
     dim = 27
     images = []
 
-    for i in range(10000):
+    for i in range(1000):
         if i % 100 == 0:
             print('starting sample', i)
 
@@ -127,7 +127,7 @@ def main(concept):
     print('shape:', images.shape)
 
     timestamp = int(t.time())
-    filename = 'data/{}/{}_centered_{}_{}x{}x{}.npy'
+    filename = 'data/{}/{}-centered-{}-{}x{}x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, len(images), dim, dim)
     np.save(filename, images)
 

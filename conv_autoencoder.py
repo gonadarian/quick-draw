@@ -1,5 +1,4 @@
 import time as t
-import numpy as np
 import random as rand
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
@@ -11,8 +10,7 @@ dim = 27
 train = True
 preload = not train
 predict = True
-analyze_1 = False
-analyze_2 = False
+analyze = False
 
 
 def prediction(autoencoder_model, x, n=10):
@@ -52,32 +50,13 @@ def prediction(autoencoder_model, x, n=10):
     plt.show()
 
 
-def analysis_1(encoder_model, x):
+def analysis(encoder_model, x):
     m = x.shape[0]
 
     for idx in range(m):
         sample = [x[[idx], ...]]
         activation = encoder_model.predict(sample)
         print('\t'.join(list(map(lambda it: '{0:.3f}'.format(it), activation[0, 0, 0, :]))))
-
-
-def analysis_2(decoder_model):
-    # this is a 14-number encoding for one of the lines in the test set
-    sample = np.array([[[
-        [-0.266, 0.209, 0.830, -0.031, 0.069, 0.922, -0.987, 0.800, -0.882, 0.431, 0.853, 0.117, 0.793, 0.388]
-    ]]])
-
-    # show 10 images for different encoding variations
-    for idx in range(10):
-        img = decoder_model.predict(sample)
-        img = img.reshape(dim, dim)
-
-        plt.gray()
-        plt.imshow(img)
-        plt.show()
-
-        # test what happens when 3rd number is increased
-        sample[0, 0, 0, 0] += 0.1
 
 
 def main(concept, batch_size=64, period=10):
@@ -111,18 +90,14 @@ def main(concept, batch_size=64, period=10):
         prediction(autoencoder_model, x)
 
     # show activations of encoded layer with 14 numbers
-    if analyze_1:
-        analysis_1(encoder_model, x)
-
-    # generate images for encoded values of choice
-    if analyze_2:
-        analysis_2(decoder_model)
+    if analyze:
+        analysis(encoder_model, x)
 
 
 if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
-    main(Concept.BEZIER, batch_size=512, period=1)
+    main(Concept.BEZIER)
 
     print('end')

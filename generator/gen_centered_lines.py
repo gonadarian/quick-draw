@@ -29,7 +29,7 @@ def main(concept):
     print('shape:', images.shape)
 
     timestamp = int(t.time())
-    filename = 'data/{}/{}_centered_{}_{}x{}x{}.npy'
+    filename = 'data/{}/{}-centered-{}-{}x{}x{}.npy'
     filename = filename.format(concept.code, concept.code, timestamp, len(images), dim, dim)
     np.save(filename, images)
 
