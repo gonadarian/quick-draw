@@ -60,7 +60,7 @@ def load_autoencoder_bezier_model():
 
 
 def load_matrix_encoder_bezier_model():
-    matrix_encoder_model = load('bezier/conv-matrix-encoder-bezier-1544884715-e0053-0.001561.hdf5')
+    matrix_encoder_model = load('bezier/conv-matrix-encoder-bezier-1545100313-e0051-0.000953.hdf5')
     return matrix_encoder_model
 
 
