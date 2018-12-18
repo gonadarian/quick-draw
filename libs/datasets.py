@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import tensorflow as tf
 
 
 def load(filename):
@@ -12,6 +13,16 @@ def load(filename):
 def load_images_quickdraw(category, dim):
     filename = 'quickdraw/quickdraw-{}.npy'.format(category)
     x = load(filename)
+    x = x.reshape((-1, 28, 28))[:, :dim, :dim]
+    x = x.astype('float32') / 255.
+    assert x.shape[1:] == (dim, dim)
+
+    return x
+
+
+def load_images_mnist(category, dim):
+    (x, y), _ = tf.keras.datasets.mnist.load_data(path='mnist.npz')
+    x = x[y == category]
     x = x.reshape((-1, 28, 28))[:, :dim, :dim]
     x = x.astype('float32') / 255.
     assert x.shape[1:] == (dim, dim)
