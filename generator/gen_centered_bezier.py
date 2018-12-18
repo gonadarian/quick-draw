@@ -13,8 +13,16 @@ def show_image(image):
     return
 
 
-def _get_path_string(base_width, control_point, mirror):
-    dim = 27
+def rotate(coords, angle):
+    theta = np.radians(angle)
+    c, s = np.cos(theta), np.sin(theta)
+    rotation = np.array(((c, -s), (s, c)))
+    coords = np.matmul(coords, rotation)
+
+    return coords
+
+
+def _get_path_string(base_width, control_point, mirror, angle, dim=27):
     assert 2 < base_width < dim, "base_width too small or too large"
     assert len(control_point) == 2, "control_point should have two coordinates"
     assert (2 < control_point[0] < dim and
@@ -23,7 +31,13 @@ def _get_path_string(base_width, control_point, mirror):
     c1 = [0, 0] if not mirror else [dim - 1, 0]
     c2 = control_point if not mirror else [dim - 1 - control_point[0], control_point[1]]
     c3 = [base_width, 0] if not mirror else [dim - 1 - base_width, 0]
-    path_string = "M{},{} Q{},{},{},{}".format(*[*c1, *c2, *c3])
+
+    coords = np.array([c1, c2, c3])
+    coords = rotate(coords, angle)
+    coords = coords - coords.mean(axis=0) + dim
+    coords = coords.reshape((6, )).tolist()
+
+    path_string = "M{},{} Q{},{},{},{}".format(*coords)
 
     return path_string
 
@@ -37,9 +51,10 @@ def get_path_string(debug=False):
         base_width = coords[0]
         control_point = [coords[1], coords[2]]
         mirror = bool(rand.getrandbits(1))
+        angle = rand.randint(0, 359)
 
         try:
-            path_string = _get_path_string(base_width, control_point, mirror)
+            path_string = _get_path_string(base_width, control_point, mirror, angle)
         except AssertionError as error:
             if debug:
                 print('not a valid path for:', coords, mirror, "error:", error)
@@ -47,13 +62,12 @@ def get_path_string(debug=False):
     return path_string
 
 
-def generate_big_image(rotation):
+def generate_big_image(path_string):
     dim = 27
-    path_string = get_path_string()
-    print('\tpath:', path_string, 'with rotation:', rotation)
 
-    image = Image.new("L", (dim, dim))  # last part is image dimensions
+    image = Image.new("L", (dim * 2, dim * 2))  # last part is image dimensions
     draw = agg.Draw(image)
+    draw.setantialias(False)
     outline = agg.Pen("white", 1)  # 5 is the outline width in pixels
 
     symbol = agg.Symbol(path_string)
@@ -61,23 +75,16 @@ def generate_big_image(rotation):
     draw.symbol(xy, symbol, outline)
     draw.flush()
 
-    if rotation:
-        rotated = image.rotate(rotation, resample=Image.CUBIC, expand=True)
-        image = Image.new('L', (3 * dim, 3 * dim), 'black')
-        image.paste(rotated, (dim, dim), rotated)
-
     return np.asarray(image)
 
 
 def generate_image(dim, show=False):
-    rotation = rand.randint(0, 359)
-    image = generate_big_image(rotation)
-
-    center = gens.calc_image_center(image)
-    x = center[1]
-    y = center[0]
     half_dim = dim // 2
-    centered_image = image[y-half_dim: y + half_dim + 1, x - half_dim: x + half_dim + 1]
+
+    path_string = get_path_string()
+    image = generate_big_image(path_string)
+    y, x = gens.calc_image_center(image)
+    centered_image = image[y - half_dim: y + half_dim + 1, x - half_dim: x + half_dim + 1]
 
     if np.sum(image) != np.sum(centered_image):
         print('\trotated image did not fit within 27x27')
@@ -85,7 +92,7 @@ def generate_image(dim, show=False):
 
     final_center = gens.calc_image_center(centered_image)
     if not np.array_equal(final_center, [half_dim, half_dim]):
-        print('\tbig center:', center)
+        print('\tbig center:', x, ',', y)
         print('\tfinal center:', final_center)
         return None
 
@@ -94,6 +101,7 @@ def generate_image(dim, show=False):
         return None
 
     if show:
+        print('\tpath:', path_string)
         show_image(image)
         show_image(centered_image)
 
