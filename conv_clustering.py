@@ -71,6 +71,6 @@ if __name__ == '__main__':
 
     main(Concept.LINE)
     main(Concept.ELLIPSE)
-    main(Concept.BEZIER, batch_size=256)
+    main(Concept.BEZIER)
 
     print('end')

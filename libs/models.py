@@ -65,7 +65,7 @@ def load_matrix_encoder_bezier_model():
 
 
 def load_clustering_bezier_model():
-    clustering_model = load('bezier/conv-clustering-bezier-1544921335-e0116-0.400680.hdf5')
+    clustering_model = load('bezier/conv-clustering-bezier-1545136934-e0978-0.009807.hdf5')
     return clustering_model
 
 

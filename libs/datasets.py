@@ -192,10 +192,10 @@ def load_images_bezier_mixed():
 
 
 def load_images_bezier_clustered():
-    filename = 'bezier/bezier-clustered-1544920533-32822x10x2x17.npy'
+    filename = 'bezier/bezier-clustered-1545136640-9742x10x2x17.npy'
     x = load(filename)
     m = x.shape[0]
-    assert m == 32822
+    assert m == 9742
     assert x.shape == (m, 10, 2, 17)
 
     # TODO pair count, 10, should be a parameter of this method

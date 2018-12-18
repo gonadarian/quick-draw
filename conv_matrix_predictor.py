@@ -15,8 +15,9 @@ adjacency_threshold = -30
 channels_full = 17
 channels = 14
 
-quick_draw_data = True
-custom_shape = 3
+quickdraw_data = True
+quickdraw_sample = None
+custom_sample = 3
 analysis = False
 saving = False
 
@@ -25,9 +26,9 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 def load_quickdraw_dataset(concept):
     switcher = {
-        Concept.LINE: 'triangle',
-        Concept.ELLIPSE: 'circle',
-        Concept.BEZIER: 'animal_migration',  # 'rainbow',
+        Concept.LINE: 'octagon',  # options: triangle, square, octagon
+        Concept.ELLIPSE: 'circle',  # options: circle
+        Concept.BEZIER: 'moon',  # options: animal_migration, rainbow, moon
     }
 
     category = switcher.get(concept)
@@ -74,14 +75,14 @@ def load_custom_data_sample(shape=1, show=False):
 
 def main(concept):
 
-    if quick_draw_data:
+    if quickdraw_data:
         data_set = load_quickdraw_dataset(concept)
-        index = rand.randint(0, len(data_set))
+        index = rand.randint(0, len(data_set)) if quickdraw_sample is None else quickdraw_sample
         print('using quick draw sample', index)
         sample = data_set[index, :, :]
 
     else:
-        sample = load_custom_data_sample(shape=custom_shape, show=False)
+        sample = load_custom_data_sample(shape=custom_sample, show=False)
 
     assert sample.shape == (dim, dim)
 
