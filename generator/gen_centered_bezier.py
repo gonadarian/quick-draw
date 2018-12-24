@@ -7,12 +7,6 @@ from PIL import Image
 from libs.concepts import Concept
 
 
-def show_image(image):
-    image = Image.fromarray(image)
-    image.show()
-    return
-
-
 def rotate(coords, angle):
     theta = np.radians(angle)
     c, s = np.cos(theta), np.sin(theta)
@@ -62,12 +56,14 @@ def get_path_string(debug=False):
     return path_string
 
 
-def generate_big_image(path_string):
+def generate_big_image(path_string, antialias=False):
     dim = 27
 
     image = Image.new("L", (dim * 2, dim * 2))  # last part is image dimensions
     draw = agg.Draw(image)
-    draw.setantialias(False)
+    if not antialias:
+        draw.setantialias(False)
+
     outline = agg.Pen("white", 1)  # 5 is the outline width in pixels
 
     symbol = agg.Symbol(path_string)
@@ -78,11 +74,11 @@ def generate_big_image(path_string):
     return np.asarray(image)
 
 
-def generate_image(dim, show=False):
+def generate_image(dim=27, antialias=False, show=False):
     half_dim = dim // 2
 
     path_string = get_path_string()
-    image = generate_big_image(path_string)
+    image = generate_big_image(path_string, antialias)
     y, x = gens.calc_image_center(image)
     centered_image = image[y - half_dim: y + half_dim + 1, x - half_dim: x + half_dim + 1]
 
@@ -102,8 +98,8 @@ def generate_image(dim, show=False):
 
     if show:
         print('\tpath:', path_string)
-        show_image(image)
-        show_image(centered_image)
+        gens.show_image(image)
+        gens.show_image(centered_image)
 
     return centered_image
 

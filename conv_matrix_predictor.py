@@ -9,12 +9,13 @@ from PIL import Image, ImageDraw
 
 dim = 27
 vertices = 4
-embedding_threshold = 0.9
-cluster_threshold = 2
+cluster_threshold = 3
 adjacency_threshold = -30
 channels_full = 17
 channels = 14
 
+mnist = False
+mnist_sample = None
 quickdraw_data = True
 quickdraw_sample = None
 custom_sample = 3
@@ -75,7 +76,13 @@ def load_custom_data_sample(shape=1, show=False):
 
 def main(concept):
 
-    if quickdraw_data:
+    if mnist:
+        data_set = ds.load_images_mnist(category=3, dim=27)
+        index = rand.randint(0, len(data_set)) if mnist_sample is None else mnist_sample
+        print('using mnist sample', index)
+        sample = data_set[index, :, :]
+
+    elif quickdraw_data:
         data_set = load_quickdraw_dataset(concept)
         index = rand.randint(0, len(data_set)) if quickdraw_sample is None else quickdraw_sample
         print('using quick draw sample', index)
@@ -89,8 +96,9 @@ def main(concept):
     _, _, decoder_model = concept.model_autoencoder()
     matrix_encoder_model = concept.model_matrix_encoder()
     clustering_model = concept.model_clustering()
+    sample_threshold = 0.8
 
-    embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, threshold=embedding_threshold, show=False)
+    embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, threshold=sample_threshold, show=False)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
     clusters = utl.extract_clusters(cluster_matrix)
 
@@ -102,15 +110,17 @@ def main(concept):
     images = []
     lines = []
     for cluster in clusters:
-        if len(cluster) > cluster_threshold:
-            cluster_embeddings = embeddings[list(cluster)]
-            cluster_embedding = np.mean(cluster_embeddings, axis=0)
-            encoding, center = utl.extract_encoding_and_center(cluster_embedding)
-            assert encoding.shape == (channels, )
-            assert center.shape == (2, )
-            image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
-            images.append(image)
-            lines.append(cluster_embedding)
+        if len(cluster) <= cluster_threshold:
+            continue
+
+        cluster_embeddings = embeddings[list(cluster)]
+        cluster_embedding = np.mean(cluster_embeddings, axis=0)
+        encoding, center = utl.extract_encoding_and_center(cluster_embedding)
+        assert encoding.shape == (channels, )
+        assert center.shape == (2, )
+        image = utl.gen_image(decoder_model, encoding, center, dim=dim, show=False)
+        images.append(image)
+        lines.append(cluster_embedding)
 
     utl.show_clusters(sample, images, dim=dim)
 
@@ -130,8 +140,8 @@ def main(concept):
 
 if __name__ == '__main__':
 
-    main(Concept.LINE)
-    main(Concept.ELLIPSE)
+    # main(Concept.LINE)
+    # main(Concept.ELLIPSE)
     main(Concept.BEZIER)
 
     print('end')

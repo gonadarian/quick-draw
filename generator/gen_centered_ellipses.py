@@ -5,10 +5,22 @@ import libs.generators as gens
 from libs.concepts import Concept
 
 
-def ellipse_drawer(draw, dim, params):
+def ellipse_drawer(draw, dim, params, pen):
     assert len(params) == 2
     x, y = params
-    draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), outline=255)
+    draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), pen)
+
+
+def generate_image(dim=27, antialias=False, show=False):
+    angle = rand.randint(0, 359)
+    x = rand.randint(0, dim // 2 - 1)
+    y = rand.randint(0, dim // 2 - 1)
+    image = gens.draw_image(dim, [x, y], drawer=ellipse_drawer, rotate=angle, antialias=antialias, show=show)
+
+    if show:
+        print(image)
+
+    return image
 
 
 def main(concept):

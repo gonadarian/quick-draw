@@ -1,18 +1,32 @@
 import math
 import numpy as np
 import random as rand
+import aggdraw as agg
 import libs.utilities as utl
 from PIL import Image, ImageDraw
 
 
-def draw_image(dim, params, drawer, rotate=None, show=False):
+def show_image(image):
+    image = Image.fromarray(image)
+    image.show()
+    return
+
+
+def draw_image(dim, params, drawer, rotate=None, antialias=False, show=False):
     image = Image.new("L", (dim, dim), "black")
 
-    draw = ImageDraw.Draw(image)
-    drawer(draw, dim, params)
+    draw = agg.Draw(image)
+    if not antialias:
+        draw.setantialias(False)
+    pen = agg.Pen("white", 1)  # 5 is the outline width in pixels
+
+    # draw = ImageDraw.Draw(image)
+    drawer(draw, dim, params, pen)
+    draw.flush()
 
     if rotate:
-        rotated = image.rotate(rotate, resample=Image.NEAREST, expand=False)
+        resample = Image.CUBIC if antialias else Image.NEAREST
+        rotated = image.rotate(rotate, resample=resample, expand=False)
         image = Image.new('L', (dim, dim), 'black')
         image.paste(rotated, (0, 0), rotated)
 

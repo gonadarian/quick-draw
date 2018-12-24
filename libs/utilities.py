@@ -188,9 +188,12 @@ def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, dim=28, show=
 
 
 def show_clusters(input_image, cluster_images, dim=28):
+    print('input_image.shape', input_image.shape)
     assert input_image.shape == (dim, dim)
     n = len(cluster_images)
+    print('len(cluster_images)', n)
     cluster_mix = np.array(cluster_images)
+    print('cluster_images.shape', cluster_mix.shape)
     assert cluster_mix.shape == (n, dim, dim)
     cluster_mix = np.amax(cluster_mix, axis=0)
     assert cluster_mix.shape == (dim, dim)
