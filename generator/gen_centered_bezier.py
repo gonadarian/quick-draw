@@ -76,7 +76,6 @@ def generate_big_image(path_string, antialias, outline):
 def generate_image(path_string, dim=27, antialias=False, outline=1, show=False):
     half_dim = dim // 2
 
-    # path_string = get_path_string()
     image = generate_big_image(path_string, antialias, outline)
     y, x = gens.calc_image_center(image)
     centered_image = image[y - half_dim: y + half_dim + 1, x - half_dim: x + half_dim + 1]

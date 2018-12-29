@@ -20,8 +20,6 @@ def draw_image(dim, params, drawer, rotate=None, antialias=False, outline=1, sho
         draw.setantialias(False)
 
     pen = agg.Pen("white", outline)
-
-    # draw = ImageDraw.Draw(image)
     drawer(draw, dim, params, pen)
     draw.flush()
 

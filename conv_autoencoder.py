@@ -1,53 +1,15 @@
 import time as t
-import random as rand
-import matplotlib.pyplot as plt
+import libs.utilities as utl
 from libs.concepts import Concept
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 dim = 27
 
-train = True
+train = False
 preload = not train
 predict = True
 analyze = False
-
-
-def prediction(autoencoder_model, x, n=10):
-    m = x.shape[0]
-
-    predicted_list = autoencoder_model.predict(x)
-    indices = rand.sample(range(1, m), n)
-    plt.figure(figsize=(30, 4))
-
-    for i in range(n):
-        index = indices[i]
-
-        # display original
-        ax = plt.subplot(3, n, i + 1)
-        original = x[index].reshape(dim, dim)
-        plt.imshow(original)
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.set_title(index)
-
-        # display reconstruction
-        ax = plt.subplot(3, n, i + 1 + n)
-        predicted = predicted_list[index].reshape(dim, dim)
-        plt.imshow(predicted)
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-        # display reconstruction
-        ax = plt.subplot(3, n, i + 1 + 2 * n)
-        plt.imshow(original - predicted)
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-    plt.show()
 
 
 def analysis(encoder_model, x):
@@ -87,7 +49,7 @@ def main(concept, batch_size=64, period=10):
         )
 
     if predict:
-        prediction(autoencoder_model, x)
+        utl.show_predictions(autoencoder_model, x, x)
 
     # show activations of encoded layer with 14 numbers
     if analyze:
