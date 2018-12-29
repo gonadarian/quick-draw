@@ -210,6 +210,24 @@ def load_images_bezier_clustered():
     return x, y, m
 
 
+def load_images_mix_thinned():
+    filename = 'mix/mix-thinned-samples-1546101190-3000x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 3000
+    assert x.shape == (m, 27, 27)
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (m, 27, 27, 1))
+
+    filename = 'mix/mix-thinned-targets-1546101190-3000x27x27x1.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27)
+    y = y.astype('float32') / 255.
+    y = np.reshape(y, (m, 27, 27, 1))
+
+    return x, y, m
+
+
 def load_graphs_square_centered():
     vertices_list = load('square/square-centered-vertices-1544545197-114x4x17.npy')
     m = len(vertices_list)

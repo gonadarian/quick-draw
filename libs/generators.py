@@ -3,7 +3,7 @@ import numpy as np
 import random as rand
 import aggdraw as agg
 import libs.utilities as utl
-from PIL import Image, ImageDraw
+from PIL import Image
 
 
 def show_image(image):
@@ -12,13 +12,14 @@ def show_image(image):
     return
 
 
-def draw_image(dim, params, drawer, rotate=None, antialias=False, show=False):
+def draw_image(dim, params, drawer, rotate=None, antialias=False, outline=1, show=False):
     image = Image.new("L", (dim, dim), "black")
 
     draw = agg.Draw(image)
     if not antialias:
         draw.setantialias(False)
-    pen = agg.Pen("white", 1)  # 5 is the outline width in pixels
+
+    pen = agg.Pen("white", outline)
 
     # draw = ImageDraw.Draw(image)
     drawer(draw, dim, params, pen)

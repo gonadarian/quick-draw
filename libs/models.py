@@ -69,6 +69,11 @@ def load_clustering_bezier_model():
     return clustering_model
 
 
+def load_matrix_thinner_mix_model():
+    matrix_encoder_model = load('mix/conv-matrix-thinner-mix-1546101283-e0099-0.005485.hdf5')
+    return matrix_encoder_model
+
+
 def load_graph_autoencoder_model():
     custom_objects = {
         'tf': tf,
@@ -182,6 +187,32 @@ def create_matrix_encoder_model():
         optimizer=optimizer.Adam(),
         loss=loss.mean_squared_error,
         metrics=[metric.mean_squared_error, metric.categorical_accuracy])
+
+    return model
+
+
+def create_matrix_thinner_model():
+    input_image = Input(shape=(27, 27, 1))
+
+    x = input_image
+
+    # TODO refactor as a loop with method parameters controlling the layers' params
+    x = Conv2D(4, (3, 3), activation='relu', padding='same', name='enc_conv1')(x)
+    x = Conv2D(8, (3, 3), activation='relu', padding='same', name='enc_conv2')(x)
+    x = Conv2D(12, (3, 3), activation='relu', padding='same', name='enc_conv3')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same', name='enc_conv4')(x)
+    x = Conv2D(12, (3, 3), activation='relu', padding='same', name='enc_conv6')(x)
+    x = Conv2D(8, (3, 3), activation='relu', padding='same', name='enc_conv7')(x)
+    x = Conv2D(4, (3, 3), activation='relu', padding='same', name='enc_conv8')(x)
+    x = Conv2D(1, (3, 3), activation='tanh', padding='same', name='enc_conv9')(x)
+
+    thinned_image = x
+
+    model = Model(input_image, thinned_image)
+    model.compile(
+        optimizer=optimizer.Adam(),
+        loss=loss.mean_squared_error,
+        metrics=[metric.mean_squared_error])
 
     return model
 

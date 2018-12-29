@@ -1,5 +1,6 @@
 import math as m
 import numpy as np
+import random as rand
 import networkx as nx
 import matplotlib.pyplot as plt
 from scipy import spatial
@@ -13,7 +14,7 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     assert sample.shape == (dim, dim)
     sample = sample.reshape((1, dim, dim, 1))
 
-    # get prediction
+    # get show_predictions
     prediction = encoder.predict(sample)  # TODO predict for all samples at once, not once per sample
     assert prediction.shape == (1, dim, dim, 17)
     prediction = prediction[0]
@@ -361,3 +362,41 @@ def get_vector_transformation(adjacency_matrix, region_matrix):
     vector_indexes = row_indexes * 9 + column_indexes
 
     return vector_indexes, node_indexes
+
+
+def show_predictions(model, x, y, n=10, dim=27):
+    m = x.shape[0]
+    indices = rand.sample(range(1, m), n)
+
+    x = x[indices]
+    y = y[indices]
+    y_pred = model.predict(x)
+    plt.figure(figsize=(n * 3, 4))
+
+    for index in range(n):
+        # display original
+        ax = plt.subplot(3, n, index + 1)
+        original = x[index].reshape(dim, dim)
+        plt.imshow(original)
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        ax.set_title(index)
+
+        # display predictions
+        ax = plt.subplot(3, n, index + 1 + n)
+        predicted = y_pred[index].reshape(dim, dim)
+        plt.imshow(predicted)
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+
+        # display target
+        ax = plt.subplot(3, n, index + 1 + 2 * n)
+        target = y[index].reshape(dim, dim)
+        plt.imshow(target - predicted)
+        plt.gray()
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+
+    plt.show()

@@ -11,16 +11,16 @@ def ellipse_drawer(draw, dim, params, pen):
     draw.ellipse((x, y, dim - 1 - x, dim - 1 - y), pen)
 
 
-def generate_image(dim=27, antialias=False, show=False):
-    angle = rand.randint(0, 359)
+def generate_thinning_pair(dim=27, show=False):
     x = rand.randint(0, dim // 2 - 1)
     y = rand.randint(0, dim // 2 - 1)
-    image = gens.draw_image(dim, [x, y], drawer=ellipse_drawer, rotate=angle, antialias=antialias, show=show)
+    outline = rand.randint(1, 4)
 
-    if show:
-        print(image)
+    print('generate_thinning_pair: x={}, y={}, outline={}'.format(x, y, outline))
+    image_clear = gens.draw_image(dim, [x, y], ellipse_drawer, antialias=False, show=show)
+    image_aa = gens.draw_image(dim, [x, y], ellipse_drawer, antialias=True, outline=outline, show=show)
 
-    return image
+    return image_clear, image_aa
 
 
 def main(concept):

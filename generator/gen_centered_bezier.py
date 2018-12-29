@@ -56,7 +56,7 @@ def get_path_string(debug=False):
     return path_string
 
 
-def generate_big_image(path_string, antialias=False):
+def generate_big_image(path_string, antialias, outline):
     dim = 27
 
     image = Image.new("L", (dim * 2, dim * 2))  # last part is image dimensions
@@ -64,21 +64,20 @@ def generate_big_image(path_string, antialias=False):
     if not antialias:
         draw.setantialias(False)
 
-    outline = agg.Pen("white", 1)  # 5 is the outline width in pixels
+    outline = agg.Pen("white", outline)
 
     symbol = agg.Symbol(path_string)
-    xy = (0, 0)  # xy position to place symbol
-    draw.symbol(xy, symbol, outline)
+    draw.symbol((0, 0), symbol, outline)
     draw.flush()
 
     return np.asarray(image)
 
 
-def generate_image(dim=27, antialias=False, show=False):
+def generate_image(path_string, dim=27, antialias=False, outline=1, show=False):
     half_dim = dim // 2
 
-    path_string = get_path_string()
-    image = generate_big_image(path_string, antialias)
+    # path_string = get_path_string()
+    image = generate_big_image(path_string, antialias, outline)
     y, x = gens.calc_image_center(image)
     centered_image = image[y - half_dim: y + half_dim + 1, x - half_dim: x + half_dim + 1]
 
@@ -104,6 +103,21 @@ def generate_image(dim=27, antialias=False, show=False):
     return centered_image
 
 
+def generate_thinning_pair(show=False):
+    image_aa = None
+    image_clear = None
+
+    while image_aa is None or image_clear is None:
+        path_string = get_path_string()
+        outline = rand.randint(1, 4)
+
+        print('generate_image: path_string={}, outline={}'.format(path_string, outline))
+        image_clear = generate_image(path_string, antialias=False)
+        image_aa = generate_image(path_string, antialias=True, outline=outline, show=show)
+
+    return image_clear, image_aa
+
+
 def main(concept):
     dim = 27
     images = []
@@ -114,7 +128,8 @@ def main(concept):
 
         image = None
         while image is None:
-            image = generate_image(dim, show=False)
+            path_string = get_path_string()
+            image = generate_image(path_string, dim=dim, show=False)
 
         assert image.shape == (27, 27)
         images.append(image)

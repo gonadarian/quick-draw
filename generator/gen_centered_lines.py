@@ -11,16 +11,16 @@ def line_drawer(draw, dim, params, pen):
     draw.line((x, y, dim - 1 - x, dim - 1 - y), pen)
 
 
-def generate_image(dim=27, antialias=False, show=False):
-    angle = rand.randint(0, 359)
+def generate_thinning_pair(dim=27, show=False):
     x = rand.randint(0, dim // 2)
     y = rand.randint(0, dim - 1)
-    image = gens.draw_image(dim, [x, y], drawer=line_drawer, rotate=angle, antialias=antialias, show=show)
+    outline = rand.randint(1, 4)
 
-    if show:
-        print(image)
+    print('generate_image: x={}, y={}, outline={}'.format(x, y, outline))
+    image_clear = gens.draw_image(dim, [x, y], line_drawer, antialias=False, show=show)
+    image_aa = gens.draw_image(dim, [x, y], line_drawer, antialias=True, outline=outline, show=show)
 
-    return image
+    return image_clear, image_aa
 
 
 def main(concept):
@@ -28,7 +28,6 @@ def main(concept):
     center = dim // 2
 
     images = []
-
     for x in range(center + 1):
         for y in range(dim):
             if x == center and y == center:
