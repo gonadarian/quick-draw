@@ -1,5 +1,6 @@
 import numpy as np
 import random as rand
+import libs.models as mdl
 import libs.datasets as ds
 import libs.utilities as utl
 import matplotlib.pyplot as plt
@@ -14,8 +15,9 @@ adjacency_threshold = -30
 channels_full = 17
 channels = 14
 
-mnist = False
-mnist_sample = None
+mnist = True
+mnist_category = 3
+mnist_sample = None  # 1359  # 5129  # 2583
 quickdraw_data = True
 quickdraw_sample = None
 custom_sample = 3
@@ -74,10 +76,17 @@ def load_custom_data_sample(shape=1, show=False):
     return data
 
 
+def thinned_sample(thinner_model, sample):
+    sample = sample.reshape((1, dim, dim, 1))
+    thinned = thinner_model.predict(sample)
+
+    return thinned.reshape(dim, dim)
+
+
 def main(concept):
 
     if mnist:
-        data_set = ds.load_images_mnist(category=3, dim=27)
+        data_set = ds.load_images_mnist(category=mnist_category, dim=dim)
         index = rand.randint(0, len(data_set)) if mnist_sample is None else mnist_sample
         print('using mnist sample', index)
         sample = data_set[index, :, :]
@@ -93,14 +102,21 @@ def main(concept):
 
     assert sample.shape == (dim, dim)
 
+    thinner_model = mdl.load_matrix_thinner_mix_model()
+    sample = thinned_sample(thinner_model, sample)
+    assert sample.shape == (dim, dim)
+
     _, _, decoder_model = concept.model_autoencoder()
     matrix_encoder_model = concept.model_matrix_encoder()
     clustering_model = concept.model_clustering()
     sample_threshold = 0.8
 
     embeddings = utl.get_embeddings(matrix_encoder_model, sample, dim=dim, threshold=sample_threshold, show=False)
+    print('embeddings:', embeddings.shape)
     cluster_matrix = utl.calculate_cluster_matrix(clustering_model, embeddings)
+    print('cluster_matrix:', cluster_matrix.shape)
     clusters = utl.extract_clusters(cluster_matrix)
+    print('clusters:', len(clusters), [len(cluster) for cluster in clusters])
 
     if analysis:
         utl.show_elbow_curve(embeddings, True)

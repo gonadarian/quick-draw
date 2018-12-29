@@ -84,6 +84,9 @@ def calculate_cluster_matrix(clustering_model, embeddings):
 
 
 def extract_clusters(cluster_matrix, debug=False):
+    # TODO this is both ugly and brittle
+    cluster_match_threshold = 4
+
     n = cluster_matrix.shape[0]
     assert cluster_matrix.shape == (n, n)
     cluster_matrix = np.rint(cluster_matrix).astype(int)
@@ -98,13 +101,18 @@ def extract_clusters(cluster_matrix, debug=False):
     clusters = []
     for row, row_indexes in enumerate(indexes):
         row_index_set = set(row_indexes)
-        found = False
-        for cluster in clusters:
-            if len(row_index_set.intersection(cluster)) != 0:
-                cluster |= row_index_set
-                found = True
-                break
-        if not found:
+        best_match = (-1, 0)
+
+        for cluster_index, cluster in enumerate(clusters):
+            match = len(row_index_set.intersection(cluster))
+            print('match:', match)
+            if match > cluster_match_threshold and match > best_match[1]:
+                best_match = (cluster_index, match)
+
+        cluster_index = best_match[0]
+        if cluster_index >= 0:
+            clusters[cluster_index] |= row_index_set
+        else:
             clusters.append(row_index_set)
 
     return clusters
