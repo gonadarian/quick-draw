@@ -26,8 +26,8 @@ def load_autoencoder_line_model():
 
 
 def load_matrix_encoder_line_model():
-    # matrix_encoder_model = load('line/conv-matrix-encoder-line-1544485883-e0187-0.000034.hdf5')
-    matrix_encoder_model = load('line/conv-matrix-encoder-line-1548191274-e0230-0.000040.hdf5')
+    matrix_encoder_model = load('line/conv-matrix-encoder-line-1544485883-e0187-0.000034.hdf5')
+    # matrix_encoder_model = load('line/conv-matrix-encoder-line-1548191274-e0230-0.000040.hdf5')
     return matrix_encoder_model
 
 
