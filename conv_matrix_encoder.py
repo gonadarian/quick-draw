@@ -1,6 +1,7 @@
 import time as t
 import numpy as np
 import random as rand
+import libs.datasets as ds
 import libs.utilities as utl
 import matplotlib.pyplot as plt
 from libs.concepts import Concept
@@ -16,7 +17,14 @@ preload = not train
 predict = True
 analyze = False
 
+concepts = {Concept.LINE, Concept.ELLIPSE, Concept.BEZIER, Concept.STAR}
 np.set_printoptions(formatter={'float': lambda x: "{0:0.2f}".format(x)})
+
+
+def remove_concept(concept_set, concept):
+    concept_set = concept_set.copy()
+    concept_set.remove(concept)
+    return concept_set
 
 
 def prediction(concept, matrix_encoder_model, x):
@@ -89,7 +97,12 @@ def main(concept):
     matrix_encoder_model = concept.get_model_matrix_encoder(trained=preload)
     matrix_encoder_model.summary()
 
-    x, y, m = concept.dataset_mixed()
+    x, y, m = concept.get_dataset_mixed()
+
+    # add negative samples with zeros for labels
+    x_mix, y_mix, m_mix = ds.load_images_mix_mixed(remove_concept(concepts, concept))
+    x = np.vstack((x, x_mix))
+    y = np.vstack((y, np.zeros_like(y_mix)))
 
     if train:
         epochs = 1000
@@ -97,8 +110,8 @@ def main(concept):
         timestamp = int(t.time())
 
         model_name = 'conv-matrix-encoder-{}-{}'.format(concept.code, timestamp)
-        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
-        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
+        log_dir = 'logs/{}-b{}'.format(model_name, batch_size)
+        filepath = 'models/{}/{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
 
         matrix_encoder_model.fit(
             x, y,
@@ -120,5 +133,6 @@ if __name__ == '__main__':
     main(Concept.LINE)
     main(Concept.ELLIPSE)
     main(Concept.BEZIER)
+    main(Concept.STAR)
 
     print('end')
