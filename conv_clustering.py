@@ -72,5 +72,6 @@ if __name__ == '__main__':
     main(Concept.LINE)
     main(Concept.ELLIPSE)
     main(Concept.BEZIER)
+    main(Concept.STAR, batch_size=512)
 
     print('end')

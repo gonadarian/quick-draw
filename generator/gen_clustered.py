@@ -75,5 +75,6 @@ if __name__ == '__main__':
     gen_clustered(Concept.LINE)
     gen_clustered(Concept.ELLIPSE)
     gen_clustered(Concept.BEZIER)
+    gen_clustered(Concept.STAR)
 
     print('end')

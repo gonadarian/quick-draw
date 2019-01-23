@@ -30,6 +30,35 @@ def load_images_mnist(category, dim):
     return x
 
 
+def load_images_mix_centered(concepts, sample_size=100):
+    dataset_list = []
+    for concept in concepts:
+        dataset, m = concept.dataset_centered()
+        choice = np.random.choice(m, size=sample_size)
+        dataset = dataset[choice]
+        dataset_list.append(dataset)
+
+    dataset = np.vstack(dataset_list)
+    assert dataset.shape == (sample_size * len(concepts), 27, 27, 1)
+    return dataset
+
+
+def load_images_mix_mixed(concepts, sample_size=100):
+    samples_list = []
+    encodings_list = []
+    for concept in concepts:
+        samples, encodings, m = concept.get_dataset_mixed()
+        choice = np.random.choice(m, size=sample_size)
+        samples_list.append(samples[choice])
+        encodings_list.append(encodings[choice])
+
+    samples = np.vstack(samples_list)
+    encodings = np.vstack(encodings_list)
+    assert samples.shape == (sample_size * len(concepts), 27, 27, 1)
+    assert encodings.shape == (sample_size * len(concepts), 27, 27, 17)
+    return samples, encodings, sample_size
+
+
 def load_images_line_centered():
     x = load('line/line-centered-1544186065-364x27x27.npy')
     m = x.shape[0]
@@ -196,6 +225,66 @@ def load_images_bezier_clustered():
     x = load(filename)
     m = x.shape[0]
     assert m == 9742
+    assert x.shape == (m, 10, 2, 17)
+
+    # TODO pair count, 10, should be a parameter of this method
+    x = x.reshape((m * 10, 34))
+    m = x.shape[0]
+
+    # TODO this code is used in more places, should be extracted
+    y = np.tile(np.array([1., 1., 1., 1., 1., 0., 0., 0., 0., 0.]), m // 10)
+    y = y.reshape((m, 1))
+    assert y.shape == (m, 1)
+
+    return x, y, m
+
+
+def load_images_star_centered():
+    x = load('star/star-centered-1546730684-2000x27x27.npy')
+    m = x.shape[0]
+    assert m == 2000
+    assert x.shape == (m, 27, 27)
+
+    x = x.astype('float32') / 255.
+    x = np.reshape(x, (m, 27, 27, 1))
+    assert x.shape == (m, 27, 27, 1)
+
+    return x, m
+
+
+def load_images_star_shifted():
+    filename = 'star/star-shifted-samples-1546733099-9894x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 9894
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'star/star-shifted-encodings-1546733099-9894x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
+def load_images_star_mixed():
+    filename = 'star/star-mixed-samples-1546734111-9894x27x27x1.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 9894
+    assert x.shape == (m, 27, 27, 1)
+
+    filename = 'star/star-mixed-encodings-1546734111-9894x27x27x17.npy'
+    y = load(filename)
+    assert y.shape == (m, 27, 27, 17)
+
+    return x, y, m
+
+
+def load_images_star_clustered():
+    filename = 'star/star-clustered-1546778846-9894x10x2x17.npy'
+    x = load(filename)
+    m = x.shape[0]
+    assert m == 9894
     assert x.shape == (m, 10, 2, 17)
 
     # TODO pair count, 10, should be a parameter of this method

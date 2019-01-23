@@ -86,5 +86,6 @@ if __name__ == '__main__':
     gen_shifted(Concept.LINE, density=0.1)
     gen_shifted(Concept.ELLIPSE, density=0.02)
     gen_shifted(Concept.BEZIER, density=0.04)
+    gen_shifted(Concept.STAR, density=0.01)
 
     print('done all')
