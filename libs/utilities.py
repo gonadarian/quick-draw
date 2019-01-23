@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 from scipy import spatial
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
+from scipy.ndimage import gaussian_filter
+from skimage.measure import compare_ssim as ssim
 
 
 # TODO use get_embeddings_from_prediction internally, don't duplicate code, or do something eve better!
-def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
+def get_embeddings(encoder, sample, dim=27, threshold=1, show=False):
     # prepare sample
     assert sample.shape == (dim, dim)
     sample = sample.reshape((1, dim, dim, 1))
@@ -37,7 +39,7 @@ def get_embeddings(encoder, sample, dim=28, threshold=1, show=False):
     return embeddings
 
 
-def get_embeddings_from_prediction(prediction, sample, dim=28, threshold=1, show=False):
+def get_embeddings_from_prediction(prediction, sample, dim=27, threshold=1, show=False):
     assert sample.shape == (dim, dim)
     assert prediction.shape == (dim, dim, 17)
 
@@ -83,10 +85,7 @@ def calculate_cluster_matrix(clustering_model, embeddings):
     return y
 
 
-def extract_clusters(cluster_matrix, debug=False):
-    # TODO this is both ugly and brittle
-    cluster_match_threshold = 4
-
+def extract_clusters_v1(cluster_matrix, debug=False):
     n = cluster_matrix.shape[0]
     assert cluster_matrix.shape == (n, n)
     cluster_matrix = np.rint(cluster_matrix).astype(int)
@@ -101,18 +100,51 @@ def extract_clusters(cluster_matrix, debug=False):
     clusters = []
     for row, row_indexes in enumerate(indexes):
         row_index_set = set(row_indexes)
+        found = False
+        for cluster in clusters:
+            if len(row_index_set.intersection(cluster)) != 0:
+                cluster |= row_index_set
+                found = True
+                break
+        if not found:
+            clusters.append(row_index_set)
+
+    return clusters
+
+
+def extract_clusters(cluster_matrix, debug=False):
+    # TODO this is both ugly and brittle
+    cluster_match_threshold = 4
+
+    n = cluster_matrix.shape[0]
+    assert cluster_matrix.shape == (n, n)
+    cluster_matrix = np.rint(cluster_matrix).astype(int)
+
+    indexes = []
+    for row in range(n):
+        row_indices = np.argwhere(cluster_matrix[row, :] == 1)[:, 0]
+        indexes.append(row_indices)
+        if debug:
+            print('row', row, '\t:', '\t'.join(list(map(lambda x: str(x), row_indices))))
+
+    clusters = []
+    for row, row_indices in enumerate(indexes):
+        print('indices for row {} are {}'.format(row, row_indices))
+        row_index_set = set(row_indices)
         best_match = (-1, 0)
 
         for cluster_index, cluster in enumerate(clusters):
             match = len(row_index_set.intersection(cluster))
-            print('match:', match)
+            print('\tfor cluster {} match: {}'.format(cluster_index, match))
             if match > cluster_match_threshold and match > best_match[1]:
                 best_match = (cluster_index, match)
 
         cluster_index = best_match[0]
         if cluster_index >= 0:
             clusters[cluster_index] |= row_index_set
+            print('existing cluster extended: {}'.format(clusters[cluster_index]))
         else:
+            print('new cluster added: {}'.format(row_index_set))
             clusters.append(row_index_set)
 
     return clusters
@@ -147,7 +179,7 @@ def show_elbow_curve(encodings, show=False):
         plt.show()
 
 
-def gen_image(decoder, encoding, center, dim=28, show=False):
+def gen_image(decoder, encoding, center, dim=27, show=False):
     assert encoding.shape == (14, )
 
     # this is a 14-number encoding for one of the lines in the test set
@@ -158,7 +190,7 @@ def gen_image(decoder, encoding, center, dim=28, show=False):
 
     from_row = dim + center[1]
     from_col = dim + center[0]
-    shifted = np.zeros((dim * 3, dim * 3))
+    shifted = np.zeros((dim * 3, dim * 3), dtype=np.float32)
     shifted[from_row:from_row + dim, from_col:from_col + dim] = image
     shifted = shifted[dim:dim * 2, dim:dim * 2]
     assert shifted.shape == (dim, dim)
@@ -179,7 +211,7 @@ def extract_encoding_and_center(cluster):
     return encoding, center
 
 
-def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, dim=28, show=False):
+def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, dim=27, show=False):
     assert embeddings.shape[1:] == (17, )
 
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(embeddings)
@@ -196,13 +228,44 @@ def decode_clustered_embeddings(decoder, embeddings, n_clusters=1, dim=28, show=
     return images
 
 
-def show_clusters(input_image, cluster_images, dim=28):
-    print('input_image.shape', input_image.shape)
+def calc_similarity(image_target, image_source, algorithm='dot'):
+    if algorithm == 'dot':
+        similarity = np.dot(image_target.reshape((-1,)), image_source.reshape((-1,)))
+        similarity /= np.sum(image_source)
+
+    elif algorithm == 'mse':
+        mse = np.sum((image_target - image_source) ** 2)
+        # mse /= float(image_target.shape[0] * image_target.shape[1])
+        mse /= np.sum(image_source)
+        similarity = 1 - mse
+
+    elif algorithm == 'ssim':
+        similarity = ssim(image_target, image_source)
+
+    elif algorithm == 'gauss':
+        image_target = gaussian_filter(image_target, sigma=1)
+        similarity = calc_similarity(image_target, image_source, algorithm='mse')
+
+    else:
+        assert False, '[calc_similarity] bad algorithm'
+
+    return similarity
+
+
+def show_clusters(input_image, cluster_images, cluster_weights=None, dim=27):
+    if len(cluster_images) == 0:
+        print('[show_clusters] WARNING: no clusters provided')
+        return
+
+    if cluster_weights is None:
+        cluster_weights = ['?'] * len(cluster_images)
+
+    print('[show_clusters] input_image.shape', input_image.shape)
     assert input_image.shape == (dim, dim)
     n = len(cluster_images)
-    print('len(cluster_images)', n)
+    print('[show_clusters] len(cluster_images)', n)
     cluster_mix = np.array(cluster_images)
-    print('cluster_images.shape', cluster_mix.shape)
+    print('[show_clusters] cluster_images.shape', cluster_mix.shape)
     assert cluster_mix.shape == (n, dim, dim)
     cluster_mix = np.amax(cluster_mix, axis=0)
     assert cluster_mix.shape == (dim, dim)
@@ -210,10 +273,13 @@ def show_clusters(input_image, cluster_images, dim=28):
     cols = n + 2
     fig = plt.figure(figsize=(1, cols))
 
-    # display regenerated lines
-    for i in range(n):
-        fig.add_subplot(1, cols, i + 1)
-        plt.imshow(cluster_images[i])
+    # display regenerated concepts
+    for i, (cluster_image, cluster_weight) in enumerate(zip(cluster_images, cluster_weights)):
+        similarity = calc_similarity(input_image, cluster_image, algorithm='gauss')
+        print('[show_clusters] cluster {} has similarity {}'.format(i, similarity))
+        axis = fig.add_subplot(1, cols, i + 1)
+        axis.set_title('s:{:.2f} w:{}'.format(similarity, cluster_weight))
+        plt.imshow(cluster_image)
 
     # display combination of all cluster images
     fig.add_subplot(1, cols, n + 1)
@@ -226,7 +292,7 @@ def show_clusters(input_image, cluster_images, dim=28):
     plt.show()
 
 
-def get_adjacency_matrix(images, dim=28, show=False):
+def get_adjacency_matrix(images, dim=27, show=False):
     vertices = len(images)
     matrix = np.array(images).reshape((vertices, dim * dim))
     adjacency_matrix = np.dot(matrix, matrix.T)
