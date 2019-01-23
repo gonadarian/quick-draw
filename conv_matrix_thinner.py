@@ -34,8 +34,8 @@ def main():
         timestamp = int(t.time())
 
         model_name = 'conv-matrix-thinner-mix-{}'.format(timestamp)
-        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
-        filepath = 'models\mix\{}-{}.hdf5'.format(model_name, 'e{epoch:04d}-{val_loss:.6f}')
+        log_dir = 'logs/{}-b{}'.format(model_name, batch_size)
+        filepath = 'models/mix/{}-{}.hdf5'.format(model_name, 'e{epoch:04d}-{val_loss:.6f}')
 
         matrix_thinner_model.fit(
             x, y,

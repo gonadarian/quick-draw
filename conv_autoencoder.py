@@ -33,8 +33,8 @@ def main(concept, batch_size=64, period=10):
         timestamp = int(t.time())
 
         model_name = 'conv-autoencoder-{}-{}'.format(concept.code, timestamp)
-        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
-        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.5f}')
+        log_dir = 'logs/{}-b{}'.format(model_name, batch_size)
+        filepath = 'models/{}/{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.5f}')
 
         autoencoder_model.fit(
             x, x,

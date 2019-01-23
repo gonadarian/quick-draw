@@ -39,8 +39,8 @@ def main(concept):
         timestamp = int(t.time())
 
         model_name = 'graph-autoencoder-{}-{}'.format(concept.code, timestamp)
-        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
-        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:05d}-{val_loss:.6f}')
+        log_dir = 'logs/{}-b{}'.format(model_name, batch_size)
+        filepath = 'models/{}/{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:05d}-{val_loss:.6f}')
 
         autoencoder_model.fit(
             x=[vertices_list, mappings_list],

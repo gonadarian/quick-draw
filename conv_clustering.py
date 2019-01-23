@@ -48,8 +48,8 @@ def main(concept, batch_size=32):
         timestamp = int(t.time())
 
         model_name = 'conv-clustering-{}-{}'.format(concept.code, timestamp)
-        log_dir = 'C:\Logs\{}-b{}'.format(model_name, batch_size)
-        filepath = 'models\{}\{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
+        log_dir = 'logs/{}-b{}'.format(model_name, batch_size)
+        filepath = 'models/{}/{}-{}.hdf5'.format(concept.code, model_name, 'e{epoch:04d}-{val_loss:.6f}')
 
         clustering_model.fit(
             x, y,
