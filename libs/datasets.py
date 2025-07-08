@@ -240,7 +240,7 @@ def load_images_bezier_clustered():
 
 
 def load_images_star_centered():
-    x = load('star/star-centered-1546730684-2000x27x27.npy')
+    x = load('star/star-centered-1548364416-2000x27x27.npy')
     m = x.shape[0]
     assert m == 2000
     assert x.shape == (m, 27, 27)

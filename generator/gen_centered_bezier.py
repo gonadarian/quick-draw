@@ -118,10 +118,11 @@ def generate_thinning_pair(show=False):
 
 
 def main(concept):
+    m = 4000
     dim = 27
     images = []
 
-    for i in range(1000):
+    for i in range(m):
         if i % 100 == 0:
             print('starting sample', i)
 

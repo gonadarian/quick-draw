@@ -90,10 +90,11 @@ def get_edge_count():
 
 
 def main(concept=None):
+    m = 2000
     dim = 27
     images = []
 
-    for _ in range(2000):
+    for _ in range(m):
         edge_count = get_edge_count()
         params = [edge_count]
         image = gens.draw_image(dim, params, drawer=star_drawer, show=False)
@@ -109,6 +110,5 @@ def main(concept=None):
 
 
 if __name__ == '__main__':
-    ds.load
     main(Concept.STAR)
     print('end')
